@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useSession, signOut } from "next-auth/react";
 import { AnimatePresence, motion, useMotionValueEvent, useScroll } from "framer-motion";
 import { ChevronDown, LayoutGrid, Menu, Search, ShoppingBag, User, X } from "lucide-react";
 import { useLenis } from "lenis/react";
@@ -20,6 +21,7 @@ const messages = [
 ];
 
 const extraLinks = [
+  { href: "/ureticiler", label: "Üreticiler" },
   { href: "/hakkimizda", label: "Hakkımızda" },
   { href: "/uretici-ol", label: "Üretici Ol" },
   { href: "/sss", label: "Sıkça Sorulanlar" },
@@ -54,33 +56,12 @@ function SearchBox({ className = "", onDone }: { className?: string; onDone?: ()
   );
 }
 
-function IconBtn({
-  children,
-  label,
-  className = "",
-  onClick,
-  id,
-}: {
-  children: React.ReactNode;
-  label: string;
-  className?: string;
-  onClick?: () => void;
-  id?: string;
-}) {
-  return (
-    <button
-      id={id}
-      aria-label={label}
-      onClick={onClick}
-      className={`relative grid h-10 w-10 place-items-center rounded-full text-ink transition-colors hover:bg-sand-300/60 [&_svg]:h-5 [&_svg]:w-5 ${className}`}
-    >
-      {children}
-    </button>
-  );
-}
+const iconBtn =
+  "relative grid h-10 w-10 place-items-center rounded-full text-ink transition-colors hover:bg-sand-300/60 [&_svg]:h-5 [&_svg]:w-5";
 
 export default function Navbar() {
   const pathname = usePathname();
+  const { data: session, status } = useSession();
   const [delay] = useState(() => (pathname === "/" ? introDelay(1.4) : 0));
   const { scrollY } = useScroll();
   const [hidden, setHidden] = useState(false);
@@ -92,6 +73,13 @@ export default function Navbar() {
   const lenis = useLenis();
   const count = useCart(selectCount);
   const openCart = useUI((s) => s.openCart);
+
+  const user = session?.user;
+  const userInitials = user?.name
+    ?.split(" ")
+    .slice(0, 2)
+    .map((w) => w[0]?.toLocaleUpperCase("tr"))
+    .join("");
 
   useEffect(() => {
     setMounted(true);
@@ -139,11 +127,8 @@ export default function Navbar() {
         <motion.header
           animate={{ y: hidden ? "-100%" : "0%" }}
           transition={{ duration: 0.45, ease }}
-          className={`border-b border-sand-300/70 bg-cream-50/90 backdrop-blur-md transition-shadow ${
-            scrolled ? "shadow-soft" : ""
-          }`}
+          className={`border-b border-sand-300/70 bg-cream-50/90 backdrop-blur-md transition-shadow ${scrolled ? "shadow-soft" : ""}`}
         >
-          {/* Duyuru şeridi */}
           <div className="relative h-8 overflow-hidden bg-olive-900 text-cream-50">
             <AnimatePresence mode="wait">
               <motion.p
@@ -161,20 +146,13 @@ export default function Navbar() {
 
           <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 md:h-20 md:gap-6 md:px-8">
             <Link href="/" onClick={close} className="flex shrink-0 items-center gap-2">
-              <span className="grid h-9 w-9 place-items-center rounded-full bg-olive-700 font-display text-lg text-cream-50">
-                B
-              </span>
+              <span className="grid h-9 w-9 place-items-center rounded-full bg-olive-700 font-display text-lg text-cream-50">B</span>
               <span className="font-display text-xl text-olive-900">
                 Buharkent<span className="text-terra-500">.</span>
               </span>
             </Link>
 
-            {/* Kategori menüsü (masaüstü) */}
-            <div
-              className="relative hidden lg:block"
-              onMouseEnter={() => setCatOpen(true)}
-              onMouseLeave={() => setCatOpen(false)}
-            >
+            <div className="relative hidden lg:block" onMouseEnter={() => setCatOpen(true)} onMouseLeave={() => setCatOpen(false)}>
               <button className="flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold text-olive-900 transition-colors hover:bg-sand-300/60">
                 <LayoutGrid className="h-4 w-4" />
                 Kategoriler
@@ -193,17 +171,9 @@ export default function Navbar() {
                       {categories.map((c) => {
                         const Icon = c.icon;
                         return (
-                          <Link
-                            key={c.slug}
-                            href={`/kategori/${c.slug}`}
-                            className="group flex items-center gap-3 rounded-2xl p-3 transition-colors hover:bg-cream-200"
-                          >
+                          <Link key={c.slug} href={`/kategori/${c.slug}`} className="group flex items-center gap-3 rounded-2xl p-3 transition-colors hover:bg-cream-200">
                             <span className={`grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br ${c.bg}`}>
-                              <Icon
-                                className={`h-5 w-5 transition-transform group-hover:scale-110 ${
-                                  c.slug === "sut-yumurta" ? "text-olive-900" : "text-cream-50"
-                                }`}
-                              />
+                              <Icon className={`h-5 w-5 transition-transform group-hover:scale-110 ${c.slug === "sut-yumurta" ? "text-olive-900" : "text-cream-50"}`} />
                             </span>
                             <span className="text-sm font-semibold text-ink">{c.name}</span>
                           </Link>
@@ -218,10 +188,14 @@ export default function Navbar() {
             <SearchBox className="hidden max-w-xl flex-1 md:block" />
 
             <div className="ml-auto flex items-center gap-0.5 md:gap-2">
-              <IconBtn label="Hesabım" className="hidden sm:grid">
-                <User />
-              </IconBtn>
-              <IconBtn label="Sepet" id="cart-icon" onClick={openCart}>
+              <Link href={user ? "/hesabim" : "/giris"} aria-label={user ? "Hesabım" : "Giriş yap"} className={`${iconBtn} hidden sm:grid`}>
+                {mounted && status === "authenticated" && userInitials ? (
+                  <span className="grid h-8 w-8 place-items-center rounded-full bg-olive-700 text-xs font-bold text-cream-50">{userInitials}</span>
+                ) : (
+                  <User />
+                )}
+              </Link>
+              <button id="cart-icon" aria-label="Sepet" onClick={openCart} className={iconBtn}>
                 <ShoppingBag />
                 <AnimatePresence>
                   {mounted && count > 0 && (
@@ -237,21 +211,19 @@ export default function Navbar() {
                     </motion.span>
                   )}
                 </AnimatePresence>
-              </IconBtn>
-              <IconBtn label="Menü" className="lg:hidden" onClick={toggle}>
+              </button>
+              <button aria-label="Menü" onClick={toggle} className={`${iconBtn} lg:hidden`}>
                 {open ? <X /> : <Menu />}
-              </IconBtn>
+              </button>
             </div>
           </div>
 
-          {/* Mobil arama */}
           <div className="px-4 pb-3 md:hidden">
             <SearchBox onDone={close} />
           </div>
         </motion.header>
       </motion.div>
 
-      {/* Mobil menü */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -267,12 +239,7 @@ export default function Navbar() {
               {categories.map((c, i) => {
                 const Icon = c.icon;
                 return (
-                  <motion.div
-                    key={c.slug}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 + i * 0.04 }}
-                  >
+                  <motion.div key={c.slug} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 + i * 0.04 }}>
                     <Link href={`/kategori/${c.slug}`} onClick={close} className="flex items-center gap-3 rounded-2xl bg-cream-50 p-3">
                       <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br ${c.bg}`}>
                         <Icon className={`h-5 w-5 ${c.slug === "sut-yumurta" ? "text-olive-900" : "text-cream-50"}`} />
@@ -286,12 +253,7 @@ export default function Navbar() {
 
             <ul className="mt-8 space-y-1">
               {extraLinks.map((l, i) => (
-                <motion.li
-                  key={l.href}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.45 + i * 0.05 }}
-                >
+                <motion.li key={l.href} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.45 + i * 0.05 }}>
                   <Link href={l.href} onClick={close} className="block py-2 font-display text-3xl text-olive-900">
                     {l.label}
                   </Link>
@@ -299,16 +261,32 @@ export default function Navbar() {
               ))}
             </ul>
 
-            <motion.div
-              className="mt-8 flex flex-col gap-3"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-            >
-              <button className="w-full rounded-full bg-olive-700 py-4 font-semibold text-cream-50">Giriş Yap</button>
-              <button className="w-full rounded-full border border-olive-700 py-4 font-semibold text-olive-700">
-                Kayıt Ol
-              </button>
+            <motion.div className="mt-8 flex flex-col gap-3" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
+              {user ? (
+                <>
+                  <Link href="/hesabim" onClick={close} className="w-full rounded-full bg-olive-700 py-4 text-center font-semibold text-cream-50">
+                    Hesabım
+                  </Link>
+                  <button
+                    onClick={() => {
+                      close();
+                      signOut({ redirectTo: "/" });
+                    }}
+                    className="w-full rounded-full border border-olive-700 py-4 font-semibold text-olive-700"
+                  >
+                    Çıkış yap
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link href="/giris" onClick={close} className="w-full rounded-full bg-olive-700 py-4 text-center font-semibold text-cream-50">
+                    Giriş Yap
+                  </Link>
+                  <Link href="/kayit" onClick={close} className="w-full rounded-full border border-olive-700 py-4 text-center font-semibold text-olive-700">
+                    Kayıt Ol
+                  </Link>
+                </>
+              )}
             </motion.div>
           </motion.div>
         )}
