@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { isValidObjectId } from "mongoose";
+import { isValidObjectId, trusted } from "mongoose";
 import { getApprovedSeller } from "@/lib/data/seller.server";
 import { Listing } from "@/models/Listing";
 import { Product } from "@/models/Product";
@@ -21,7 +21,7 @@ export default async function ListingPage({ params }: Props) {
 
   if (id === "yeni") {
     const [rows, mine] = await Promise.all([
-      Product.find({ productType: { $in: allowed }, $or: [{ active: true }, { createdBy: user._id }] }).select("name productType active").sort({ name: 1 }).lean(),
+      Product.find({ productType: trusted({ $in: allowed }), $or: [{ active: true }, { createdBy: user._id }] }).select("name productType active").sort({ name: 1 }).lean(),
       Listing.find({ seller: user._id }).distinct("product"),
     ]);
     const taken = new Set(mine.map(String));

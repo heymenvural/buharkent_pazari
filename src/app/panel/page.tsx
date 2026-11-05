@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { trusted } from "mongoose";
 import { Suspense } from "react";
 import { getApprovedSeller } from "@/lib/data/seller.server";
 import { Listing } from "@/models/Listing";
@@ -11,7 +12,7 @@ export const dynamic = "force-dynamic";
 export default async function PanelPage() {
   const { user, profile } = await getApprovedSeller();
   const listings = await Listing.find({ seller: user._id }).sort({ updatedAt: -1 }).lean();
-  const products = await Product.find({ _id: { $in: listings.map((l) => l.product) } }).select("name").lean();
+  const products = await Product.find({ _id: trusted({ $in: listings.map((l) => l.product) }) }).select("name").lean();
 
   const items: PanelListing[] = listings.map((l) => ({
     id: l._id.toString(),

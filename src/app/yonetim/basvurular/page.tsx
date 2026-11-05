@@ -21,7 +21,7 @@ export default async function ApplicationsPage() {
 
   await connectDB();
   const [rows, docs, counts] = await Promise.all([
-    SellerProfile.find({ demo: { $ne: true } })
+    SellerProfile.find()
       .populate<{ user: Pick<IUser, "_id" | "name" | "email" | "phone" | "sellerStatus"> | null }>({
         path: "user",
         model: User,
@@ -35,7 +35,7 @@ export default async function ApplicationsPage() {
   ]);
 
   const items: AppItem[] = rows
-    .filter((r) => r.user)
+    .filter((r) => r.user && !r.demo)
     .map((r) => {
       const uid = r.user!._id.toString();
       const mine = docs.filter((d) => d.user.toString() === uid);

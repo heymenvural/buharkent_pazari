@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { trusted } from "mongoose";
 import { notFound } from "next/navigation";
 import { auth } from "@/auth";
 import { connectDB } from "@/lib/db";
@@ -22,11 +23,11 @@ export default async function ReportsPage() {
   await connectDB();
   const reports = await Report.find().sort({ createdAt: -1 }).limit(300).lean();
   const listingIds = [...new Set(reports.map((r) => r.listing.toString()))];
-  const listings = await Listing.find({ _id: { $in: listingIds } }).select("product seller status").lean();
+  const listings = await Listing.find({ _id: trusted({ $in: listingIds }) }).select("product seller status").lean();
   const [products, profiles, users, counts] = await Promise.all([
-    Product.find({ _id: { $in: listings.map((l) => l.product) } }).select("name slug").lean(),
-    SellerProfile.find({ user: { $in: listings.map((l) => l.seller) } }).select("user shopName slug").lean(),
-    User.find({ _id: { $in: listings.map((l) => l.seller) } }).select("name").lean(),
+    Product.find({ _id: trusted({ $in: listings.map((l) => l.product) }) }).select("name slug").lean(),
+    SellerProfile.find({ user: trusted({ $in: listings.map((l) => l.seller) }) }).select("user shopName slug").lean(),
+    User.find({ _id: trusted({ $in: listings.map((l) => l.seller) }) }).select("name").lean(),
     adminCounts(),
   ]);
 

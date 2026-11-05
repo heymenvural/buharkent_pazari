@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { trusted } from "mongoose";
 import { notFound } from "next/navigation";
 import { auth } from "@/auth";
 import { connectDB } from "@/lib/db";
@@ -21,9 +22,9 @@ export default async function ListingsApprovalPage() {
   await connectDB();
   const listings = await Listing.find({ status: "pending" }).sort({ updatedAt: 1 }).limit(200).lean();
   const [products, profiles, users, counts] = await Promise.all([
-    Product.find({ _id: { $in: listings.map((l) => l.product) } }).select("name productType active").lean(),
-    SellerProfile.find({ user: { $in: listings.map((l) => l.seller) } }).select("user shopName slug").lean(),
-    User.find({ _id: { $in: listings.map((l) => l.seller) } }).select("name").lean(),
+    Product.find({ _id: trusted({ $in: listings.map((l) => l.product) }) }).select("name productType active").lean(),
+    SellerProfile.find({ user: trusted({ $in: listings.map((l) => l.seller) }) }).select("user shopName slug").lean(),
+    User.find({ _id: trusted({ $in: listings.map((l) => l.seller) }) }).select("name").lean(),
     adminCounts(),
   ]);
 
