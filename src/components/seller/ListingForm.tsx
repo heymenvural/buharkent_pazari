@@ -47,7 +47,7 @@ export default function ListingForm({ products, types, initial }: { products: Pi
 
   const [productId, setProductId] = useState("");
   const [query, setQuery] = useState("");
-  const [creating, setCreating] = useState(false);
+  const [creating, setCreating] = useState(() => !initial && products.length === 0);
   const [newName, setNewName] = useState("");
   const [newType, setNewType] = useState(types.length === 1 ? types[0].key : "");
 
@@ -150,7 +150,11 @@ export default function ListingForm({ products, types, initial }: { products: Pi
                       </button>
                     );
                   })}
-                  {filtered.length === 0 && <p className="text-sm text-muted sm:col-span-2">Aradığın ürün listede yok.</p>}
+                  {filtered.length === 0 && (
+                    <p className="text-sm text-muted sm:col-span-2">
+                      {products.length === 0 ? "Başvurduğun ürün grupları için katalogda henüz hazır ürün yok. Aşağıdan kendi ürününü ekleyebilirsin." : "Aradığın ürün listede yok."}
+                    </p>
+                  )}
                 </div>
                 <Err msg={errors.productId} />
                 <button type="button" onClick={() => setCreating(true)} className="mt-4 flex items-center gap-2 font-semibold text-olive-700">

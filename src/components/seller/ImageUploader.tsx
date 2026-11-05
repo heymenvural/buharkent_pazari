@@ -26,7 +26,13 @@ export async function uploadImage(file: File): Promise<string> {
 
   const up = await fetch(`https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`, { method: "POST", body: fd });
   const json = (await up.json().catch(() => ({}))) as { secure_url?: string; error?: { message?: string } };
-  if (!up.ok || !json.secure_url) throw new Error(json.error?.message?.includes("format") ? "Sadece JPG, PNG veya WEBP yükleyebilirsin." : "Yükleme başarısız.");
+  if (!up.ok || !json.secure_url) {
+    const msg = json.error?.message ?? "";
+    console.error("Cloudinary yükleme hatası:", msg);
+    if (/format/i.test(msg)) throw new Error("Sadece JPG, PNG veya WEBP yükleyebilirsin.");
+    if (/signature|api_key|api key|cloud_name|unknown/i.test(msg)) throw new Error(`Fotoğraf servisi ayarlarında sorun var: ${msg}`);
+    throw new Error(msg ? `Yükleme başarısız: ${msg}` : "Yükleme başarısız.");
+  }
   return json.secure_url;
 }
 
