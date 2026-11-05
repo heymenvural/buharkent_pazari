@@ -9,6 +9,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import CartDrawer from "@/components/cart/CartDrawer";
 import { getCatalogSnapshot } from "@/lib/data/catalog.server";
+import WelcomeModal from "@/components/home/WelcomeModal";
 
 const fraunces = Fraunces({ subsets: ["latin", "latin-ext"], variable: "--font-fraunces", display: "swap" });
 const manrope = Manrope({ subsets: ["latin", "latin-ext"], variable: "--font-manrope", display: "swap" });
@@ -42,6 +43,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <Navbar />
               <CartDrawer />
               {children}
+               <WelcomeModal />
               <Footer />
             </SmoothScroll>
           </AuthProvider>
