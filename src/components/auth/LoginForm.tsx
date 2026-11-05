@@ -11,25 +11,37 @@ import GoogleButton from "@/components/auth/GoogleButton";
 const inputCls =
   "w-full rounded-2xl border border-sand-300 bg-cream-100 px-4 py-3.5 text-ink outline-none transition-colors focus:border-olive-500";
 
-export default function LoginForm({ next }: { next: string }) {
+const authErrors: Record<string, string> = {
+  AccessDenied: "Giriş izni verilmedi. Google hesabınla giriş yapılamadı; lütfen tekrar dene veya e-posta ile giriş yap.",
+  Configuration: "Giriş sisteminde geçici bir sorun var. Lütfen biraz sonra tekrar dene.",
+  OAuthSignin: "Google ile bağlantı kurulamadı. Lütfen tekrar dene.",
+  OAuthCallbackError: "Google ile giriş tamamlanamadı. Lütfen tekrar dene.",
+  OAuthAccountNotLinked: "Bu e-posta başka bir giriş yöntemiyle kayıtlı. Önce o yöntemle giriş yap.",
+  CredentialsSignin: "E-posta veya şifre hatalı.",
+  Verification: "Doğrulama bağlantısının süresi dolmuş. Lütfen tekrar dene.",
+};
+
+export default function LoginForm({ next, initialError }: { next: string; initialError?: string }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(
+    initialError ? authErrors[initialError] ?? "Giriş sırasında bir sorun oluştu. Lütfen tekrar dene." : ""
+  );
   const [loading, setLoading] = useState(false);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (!email || !password) return setError("E-posta ve şifrenizi girin.");
+    if (!email || !password) return setError("E-posta ve şifreni gir.");
     setLoading(true);
     const res = await signIn("credentials", { email, password, redirect: false });
     setLoading(false);
     if (res?.error) {
       setError(
         res.code === "rate_limited"
-          ? "Çok fazla hatalı deneme. Lütfen 15 dakika sonra tekrar deneyin."
+          ? "Çok fazla hatalı deneme. Lütfen 15 dakika sonra tekrar dene."
           : "E-posta veya şifre hatalı."
       );
       return;
@@ -40,6 +52,19 @@ export default function LoginForm({ next }: { next: string }) {
 
   return (
     <div>
+      <AnimatePresence>
+        {error && (
+          <motion.p
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="mb-5 rounded-2xl bg-terra-500/10 px-4 py-3 text-sm font-medium text-terra-600"
+          >
+            {error}
+          </motion.p>
+        )}
+      </AnimatePresence>
+
       <GoogleButton next={next} />
       <div className="my-6 flex items-center gap-4 text-xs uppercase tracking-[0.2em] text-muted">
         <span className="h-px flex-1 bg-sand-300" /> veya <span className="h-px flex-1 bg-sand-300" />
@@ -66,14 +91,6 @@ export default function LoginForm({ next }: { next: string }) {
             </button>
           </span>
         </label>
-
-        <AnimatePresence>
-          {error && (
-            <motion.p initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="rounded-2xl bg-terra-500/10 px-4 py-3 text-sm font-medium text-terra-600">
-              {error}
-            </motion.p>
-          )}
-        </AnimatePresence>
 
         <button
           type="submit"

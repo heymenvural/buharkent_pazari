@@ -5,6 +5,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowUp, ArrowRight, AtSign, Mail, MapPin, Phone } from "lucide-react";
 import { useLenis } from "lenis/react";
+import { legalLinks } from "@/lib/legal";
 
 const ease = [0.76, 0, 0.24, 1] as const;
 
@@ -28,15 +29,7 @@ const cols = [
       { label: "Sıkça Sorulanlar", href: "/sss" },
     ],
   },
-  {
-    title: "Yasal",
-    links: [
-      { label: "KVKK Aydınlatma Metni", href: "#" },
-      { label: "Mesafeli Satış Sözleşmesi", href: "#" },
-      { label: "Gizlilik Politikası", href: "#" },
-      { label: "Çerez Politikası", href: "#" },
-    ],
-  },
+      { title: "Yasal", links: legalLinks },
 ];
 
 export default function Footer() {

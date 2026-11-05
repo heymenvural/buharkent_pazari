@@ -19,7 +19,7 @@ const adminEmails = () =>
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt", maxAge: 60 * 60 * 24 * 30 },
-  pages: { signIn: "/giris" },
+  pages: { signIn: "/giris", error: "/giris" },
   providers: [
     Google,
     Credentials({

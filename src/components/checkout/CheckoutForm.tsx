@@ -228,8 +228,8 @@ export default function CheckoutForm() {
           <Card step="4" title="Onaylar">
             <div className="space-y-3">
               {[
-                { key: "kvkk" as const, text: "KVKK Aydınlatma Metni'ni okudum, kişisel verilerimin işlenmesini onaylıyorum." },
-                { key: "contract" as const, text: "Ön Bilgilendirme Formu ve Mesafeli Satış Sözleşmesi'ni okudum, kabul ediyorum." },
+                { key: "kvkk" as const, text: <><Link href="/kvkk" target="_blank" className="font-semibold text-olive-700 underline">KVKK Aydınlatma Metni</Link>&apos;ni okudum, kişisel verilerimin işlenmesini onaylıyorum.</> },
+                { key: "contract" as const, text: <>Ön Bilgilendirme Formu ve <Link href="/mesafeli-satis" target="_blank" className="font-semibold text-olive-700 underline">Mesafeli Satış Sözleşmesi</Link>&apos;ni okudum, kabul ediyorum.</> },
               ].map((c) => (
                 <div key={c.key}>
                   <label className="flex cursor-pointer items-start gap-3">

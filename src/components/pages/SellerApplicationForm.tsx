@@ -156,7 +156,7 @@ export default function SellerApplicationForm() {
 
               <label className="mt-5 flex cursor-pointer items-start gap-3">
                 <input type="checkbox" checked={form.kvkk} onChange={(e) => set("kvkk", e.target.checked)} className="mt-0.5 h-5 w-5 shrink-0 accent-[#4a5627]" />
-                <span className="text-sm text-ink/80">KVKK Aydınlatma Metni&apos;ni okudum, başvurum için kişisel verilerimin işlenmesini onaylıyorum.</span>
+                <span className="text-sm text-ink/80"><Link href="/kvkk" target="_blank" className="font-semibold text-olive-700 underline">KVKK Aydınlatma Metni</Link></span>
               </label>
               <Err msg={errors.kvkk} />
 
