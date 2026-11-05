@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import ProductDetail from "@/components/shop/ProductDetail";
 import { getProduct, getSellerBySlug } from "@/lib/catalog";
+import { ensureCatalog } from "@/lib/data/catalog.server";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -10,6 +11,7 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
+  await ensureCatalog();
   const p = getProduct(slug);
   if (!p) return { title: "Ürün bulunamadı" };
   return { title: p.name, description: p.description };
@@ -18,10 +20,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function ProductPage({ params, searchParams }: Props) {
   const { slug } = await params;
   const sp = await searchParams;
+  await ensureCatalog();
   if (!getProduct(slug)) notFound();
 
   const raw = Array.isArray(sp.uretici) ? sp.uretici[0] : sp.uretici;
-  const seller = raw && /^[a-z0-9-]{1,60}$/.test(raw) && getSellerBySlug(raw) ? raw : undefined;
+  const seller = raw && /^[a-z0-9-]{1,80}$/.test(raw) && getSellerBySlug(raw) ? raw : undefined;
 
   return (
     <main className="px-4 pb-32 pt-[164px] md:px-8 md:pt-[150px] lg:pb-24">

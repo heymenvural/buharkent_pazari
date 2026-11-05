@@ -10,6 +10,14 @@ export interface ISellerProfile {
   sellerType: SellerKind;
   categories: string[];
   description: string;
+  // Mağaza bilgileri (onaydan sonra üretici panelinden düzenlenecek)
+  slug?: string;
+  shopName?: string;
+  tagline?: string;
+  story: string[];
+  since?: number;
+  verified: boolean;
+  demo: boolean;
   reviewedAt?: Date;
   reviewedBy?: Types.ObjectId;
   rejectReason?: string;
@@ -25,6 +33,13 @@ const SellerProfileSchema = new Schema<ISellerProfile>(
     sellerType: { type: String, enum: ["kadin-girisimci", "genc-ciftci", "diger"], required: true },
     categories: { type: [String], default: [] },
     description: { type: String, required: true, trim: true, maxlength: 1000 },
+    slug: { type: String, unique: true, sparse: true, lowercase: true, trim: true, maxlength: 80 },
+    shopName: { type: String, trim: true, maxlength: 80 },
+    tagline: { type: String, trim: true, maxlength: 160 },
+    story: { type: [String], default: [] },
+    since: { type: Number, min: 1950, max: 2100 },
+    verified: { type: Boolean, default: false },
+    demo: { type: Boolean, default: false },
     reviewedAt: Date,
     reviewedBy: { type: Schema.Types.ObjectId, ref: "User" },
     rejectReason: { type: String, maxlength: 300 },

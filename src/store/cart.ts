@@ -24,7 +24,7 @@ type CartState = {
   clear: () => void;
 };
 
-const CART_VERSION = 2;
+const CART_VERSION = 3;
 
 const clampQty = (qty: number, max?: number) => Math.max(0, Math.min(qty, max ?? 99, 99));
 

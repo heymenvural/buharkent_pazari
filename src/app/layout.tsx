@@ -3,10 +3,12 @@ import { Fraunces, Manrope } from "next/font/google";
 import "./globals.css";
 import SmoothScroll from "@/components/providers/SmoothScroll";
 import AuthProvider from "@/components/providers/AuthProvider";
+import CatalogProvider from "@/components/providers/CatalogProvider";
 import CustomCursor from "@/components/ui/CustomCursor";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import CartDrawer from "@/components/cart/CartDrawer";
+import { getCatalogSnapshot } from "@/lib/data/catalog.server";
 
 const fraunces = Fraunces({ subsets: ["latin", "latin-ext"], variable: "--font-fraunces", display: "swap" });
 const manrope = Manrope({ subsets: ["latin", "latin-ext"], variable: "--font-manrope", display: "swap" });
@@ -27,19 +29,23 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const catalogData = await getCatalogSnapshot();
+
   return (
     <html lang="tr" className={`${fraunces.variable} ${manrope.variable}`}>
       <body className="min-h-screen bg-cream-100 text-ink antialiased">
-        <AuthProvider>
-          <SmoothScroll>
-            <CustomCursor />
-            <Navbar />
-            <CartDrawer />
-            {children}
-            <Footer />
-          </SmoothScroll>
-        </AuthProvider>
+        <CatalogProvider data={catalogData}>
+          <AuthProvider>
+            <SmoothScroll>
+              <CustomCursor />
+              <Navbar />
+              <CartDrawer />
+              {children}
+              <Footer />
+            </SmoothScroll>
+          </AuthProvider>
+        </CatalogProvider>
       </body>
     </html>
   );
