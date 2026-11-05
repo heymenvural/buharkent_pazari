@@ -5,6 +5,8 @@ import { Listing } from "@/models/Listing";
 import { SellerProfile } from "@/models/SellerProfile";
 import { Review } from "@/models/Review";
 import { User, type IUser } from "@/models/User";
+import { SellerDocument } from "@/models/SellerDocument";
+import type { DocKey } from "@/lib/compliance";
 import { hydrateCatalog, type CatalogData, type SellerType } from "@/lib/catalog";
 
 const empty: CatalogData = { products: [], sellers: [], offers: [], reviews: [] };
@@ -14,12 +16,22 @@ const monthYear = (d: Date) => {
   return s.charAt(0).toLocaleUpperCase("tr") + s.slice(1);
 };
 
+// Onaylanan belgeler mağazada rozet olarak görünür (vergi belgeleri gizli kalır)
+const BADGE: Partial<Record<DocKey, string>> = {
+  cks: "ÇKS kayıtlı çiftçi",
+  aks: "Kayıtlı arıcı",
+  hayvan: "Tescilli kümes",
+  sikim: "Yağhane sıkım belgeli",
+  hijyen: "Hijyen eğitimli",
+  gikb: "Gıda işletme kayıtlı",
+};
+
 const typeLabel = (t: string): SellerType =>
   t === "kadin-girisimci" ? "Kadın Girişimci" : t === "genc-ciftci" ? "Genç Çiftçi" : "Üretici";
 
 async function load(): Promise<CatalogData> {
   await connectDB();
-  const [products, listings, profiles, reviews] = await Promise.all([
+  const [products, listings, profiles, reviews, docs] = await Promise.all([
     Product.find({ active: true }).lean(),
     Listing.find({ status: "active" }).lean(),
     SellerProfile.find()
@@ -30,6 +42,7 @@ async function load(): Promise<CatalogData> {
       })
       .lean(),
     Review.find({ status: "published" }).sort({ createdAt: -1 }).limit(1000).lean(),
+    SellerDocument.find({ status: "approved" }).select("user docKey").lean(),
   ]);
 
   // Sadece onaylı ve mağaza adresi olan üreticiler ile onların aktif ilanları gösterilir
@@ -70,11 +83,12 @@ async function load(): Promise<CatalogData> {
         owner: p.user!.name,
         type: typeLabel(p.sellerType),
         rating: Math.round(sellerRating(uid) * 10) / 10,
-        village: p.village,
+        village: [p.village, p.district ?? "Buharkent"].join(", "),
         since: p.since ?? new Date(p.createdAt).getFullYear(),
         tagline: p.tagline ?? p.description.slice(0, 160),
         story: p.story?.length ? p.story : [p.description],
         verified: p.verified,
+        badges: docs.filter((d) => d.user.toString() === uid).map((d) => BADGE[d.docKey]).filter((b): b is string => !!b),
       };
     }),
     offers: active.map((l) => ({
@@ -110,7 +124,7 @@ async function load(): Promise<CatalogData> {
   };
 }
 
-const cached = unstable_cache(load, ["catalog-snapshot-v3"], { revalidate: 60, tags: ["catalog"] });
+const cached = unstable_cache(load, ["catalog-snapshot-v4"], { revalidate: 60, tags: ["catalog"] });
 
 export async function getCatalogSnapshot(): Promise<CatalogData> {
   try {

@@ -12,6 +12,7 @@ import { useCart } from "@/store/cart";
 import { flyToCart } from "@/lib/flyToCart";
 import { toCartItem } from "@/lib/cartLine";
 import ProductCard from "@/components/shop/ProductCard";
+import ReportButton from "@/components/shop/ReportButton";
 import {
   catalog, discountPct, formatPrice, getCategory, getProduct, getSeller, initials, linesFor,
   offerReviews, offersFor, productRating, sellerGradient, variantLabels,
@@ -253,6 +254,7 @@ export default function ProductDetail({ slug, initialSeller }: { slug: string; i
               Bu üreticide %{discountPct(current.variant.price, current.variant.oldPrice)} indirim
             </p>
           )}
+          {current && <ReportButton offerId={current.offer.id} productName={product.name} sellerName={current.seller.name} />}
         </motion.div>
       </div>
 
@@ -309,7 +311,7 @@ export default function ProductDetail({ slug, initialSeller }: { slug: string; i
                     <span className="rounded-full bg-cream-50/10 px-2.5 py-1 text-[11px] font-semibold">{current.seller.type}</span>
                   </div>
                   <div className="mt-4 space-y-1.5 text-sm text-cream-50/75">
-                    <p className="flex items-center gap-2"><MapPin className="h-4 w-4" /> {current.seller.village}, Buharkent</p>
+                    <p className="flex items-center gap-2"><MapPin className="h-4 w-4" /> {current.seller.village}</p>
                     <p className="flex items-center gap-2"><CalendarDays className="h-4 w-4" /> {current.seller.since}&apos;den beri üretiyor</p>
                   </div>
                   <p className="mt-5 font-display text-lg italic leading-snug text-sand-300">&ldquo;{current.seller.tagline}&rdquo;</p>

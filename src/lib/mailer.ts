@@ -61,3 +61,25 @@ export async function sendSellerDecisionEmail(to: string, name: string, approved
     html: layout(approved ? "Başvurun onaylandı 🎉" : "Başvurun hakkında", body),
   });
 }
+const siteUrl = () => process.env.AUTH_URL ?? "https://buharkent-pazari.vercel.app";
+
+export async function sendDocumentRejectedEmail(to: string, name: string, docName: string, note?: string) {
+  const body = `<p style="margin:0 0 20px;line-height:1.6">Merhaba ${esc(name)}, yüklediğin <b>${esc(docName)}</b> belgesinde düzeltme gerekiyor.${note ? `<br><br><b>Not:</b> ${esc(note)}` : ""}<br><br>Başvurum sayfandan belgeyi yeniden yükleyebilirsin.</p>
+  <a href="${siteUrl()}/basvurum" style="display:inline-block;background:#4a5627;color:#fdfbf6;text-decoration:none;padding:14px 28px;border-radius:999px;font-weight:bold">Başvuruma git</a>`;
+  await getTransport().sendMail({ from: from(), to, subject: "Belgende düzeltme gerekiyor", html: layout("Belgende düzeltme gerekiyor", body) });
+}
+
+export async function sendReportAlertEmail(to: string[], productName: string, sellerName: string, reason: string, note: string) {
+  if (!to.length) return;
+  const body = `<p style="margin:0 0 12px;line-height:1.6"><b>${esc(productName)}</b> (${esc(sellerName)}) için yeni bir bildirim geldi.</p>
+  <p style="margin:0 0 12px"><b>Sebep:</b> ${esc(reason)}</p>
+  ${note ? `<p style="margin:0 0 20px;white-space:pre-line">${esc(note)}</p>` : ""}
+  <p style="margin:0 0 20px;font-size:14px;color:#7a6f60">Aracı hizmet sağlayıcı olarak hukuka aykırı içerikten haberdar olunca gecikmeden işlem yapılmalı.</p>
+  <a href="${siteUrl()}/yonetim/bildirimler" style="display:inline-block;background:#c0703f;color:#fdfbf6;text-decoration:none;padding:14px 28px;border-radius:999px;font-weight:bold">Bildirimleri incele</a>`;
+  await getTransport().sendMail({ from: from(), to, subject: `Ürün bildirimi: ${productName}`, html: layout("Yeni ürün bildirimi", body) });
+}
+
+export async function sendListingRemovedEmail(to: string, name: string, productName: string) {
+  const body = `<p style="margin:0;line-height:1.6">Merhaba ${esc(name)}, <b>${esc(productName)}</b> ilanın hakkında gelen bir bildirim sonrası yayından kaldırıldı. Detaylar için bizimle iletişime geçebilirsin.</p>`;
+  await getTransport().sendMail({ from: from(), to, subject: "İlanın yayından kaldırıldı", html: layout("İlanın yayından kaldırıldı", body) });
+}

@@ -18,6 +18,7 @@ export type Seller = {
   tagline: string;
   story: string[];
   verified: boolean;
+  badges?: string[];
 };
 
 export type Category = { slug: string; name: string; short: string; icon: LucideIcon; bg: string };

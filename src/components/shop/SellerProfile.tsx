@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { BadgeCheck, CalendarDays, ChevronRight, MapPin, Package, Quote, Sprout, Star } from "lucide-react";
+import { BadgeCheck, CalendarDays, ChevronRight, MapPin, Package, Quote, ShieldCheck, Sprout, Star } from "lucide-react";
 import {
   formatPrice, getProductById, getSellerBySlug, initials, offerReviews, sellerGradient, sellerOffers,
 } from "@/lib/catalog";
@@ -60,9 +60,14 @@ export default function SellerProfile({ slug }: { slug: string }) {
             <span className={`rounded-full px-3 py-1 text-xs font-semibold ${seller.type === "Kadın Girişimci" ? "bg-fig-600/10 text-fig-600" : "bg-olive-500/15 text-olive-700"}`}>
               {seller.type}
             </span>
+            {seller.badges?.map((b) => (
+              <span key={b} className="flex items-center gap-1 rounded-full border border-olive-700/30 bg-cream-50 px-3 py-1 text-xs font-semibold text-olive-700">
+                <ShieldCheck className="h-3.5 w-3.5" /> {b}
+              </span>
+            ))}
           </div>
           <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted">
-            <span className="flex items-center gap-1.5"><MapPin className="h-4 w-4" /> {seller.village}, Buharkent</span>
+            <span className="flex items-center gap-1.5"><MapPin className="h-4 w-4" /> {seller.village}</span>
             <span className="flex items-center gap-1.5"><CalendarDays className="h-4 w-4" /> {seller.since}&apos;den beri</span>
             <span className="flex items-center gap-1.5"><Star className="h-4 w-4 fill-terra-500 text-terra-500" /> {seller.rating.toFixed(1)} ({totalReviews})</span>
             <span className="flex items-center gap-1.5"><Package className="h-4 w-4" /> {list.length} ürün</span>
