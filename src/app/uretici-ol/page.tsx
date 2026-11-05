@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import SellerCta from "@/components/home/SellerCta";
-import SellerRegisterForm from "@/components/auth/SellerRegisterForm";
+import SellerWizard from "@/components/seller/SellerWizard";
 
 export const metadata: Metadata = {
   title: "Üretici Ol",
@@ -13,12 +14,12 @@ export default function BecomeSellerPage() {
       <div className="mx-auto max-w-7xl space-y-14 md:space-y-20">
         <SellerCta />
         <section id="basvuru" className="scroll-mt-40">
-          <div className="mx-auto max-w-3xl rounded-[2rem] bg-cream-50 p-6 shadow-soft md:p-10">
-            <h2 className="text-3xl text-olive-900 md:text-4xl">Başvuru formu</h2>
-            <p className="mb-8 mt-2 text-sm text-muted">
-              Formu doldur, hesabın oluşsun. Dernek ekibimiz başvurunu onayladığında giriş yapabilirsin. Başvuru ücretsizdir.
+          <div className="mx-auto max-w-2xl rounded-[2rem] bg-cream-50 p-6 shadow-soft md:p-10">
+            <p className="mb-6 text-muted">
+              Başvurmadan önce hangi belgelere ihtiyacın olduğunu görmek istersen{" "}
+              <Link href="/satici-rehberi" className="font-semibold text-olive-700 underline">Satıcı Rehberi</Link>&apos;ne göz at.
             </p>
-            <SellerRegisterForm />
+            <SellerWizard />
           </div>
         </section>
       </div>

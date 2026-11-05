@@ -4,7 +4,7 @@ import { Product } from "@/models/Product";
 import { Listing } from "@/models/Listing";
 import { SellerProfile } from "@/models/SellerProfile";
 import { Review } from "@/models/Review";
-import type { IUser } from "@/models/User";
+import { User, type IUser } from "@/models/User";
 import { hydrateCatalog, type CatalogData, type SellerType } from "@/lib/catalog";
 
 const empty: CatalogData = { products: [], sellers: [], offers: [], reviews: [] };
@@ -22,13 +22,17 @@ async function load(): Promise<CatalogData> {
   const [products, listings, profiles, reviews] = await Promise.all([
     Product.find({ active: true }).lean(),
     Listing.find({ status: "active" }).lean(),
-    SellerProfile.find({ slug: { $exists: true } })
-      .populate<{ user: Pick<IUser, "_id" | "name" | "sellerStatus"> | null }>("user", "name sellerStatus")
+    SellerProfile.find()
+      .populate<{ user: Pick<IUser, "_id" | "name" | "sellerStatus"> | null }>({
+        path: "user",
+        model: User,
+        select: "name sellerStatus",
+      })
       .lean(),
     Review.find({ status: "published" }).sort({ createdAt: -1 }).limit(1000).lean(),
   ]);
 
-  // Sadece onaylı üreticiler ve onların aktif ilanları gösterilir
+  // Sadece onaylı ve mağaza adresi olan üreticiler ile onların aktif ilanları gösterilir
   const approved = profiles.filter((p) => p.user && p.user.sellerStatus === "approved" && p.slug);
   const sellerIds = new Set(approved.map((p) => p.user!._id.toString()));
   const productIds = new Set(products.map((p) => p._id.toString()));
@@ -106,7 +110,7 @@ async function load(): Promise<CatalogData> {
   };
 }
 
-const cached = unstable_cache(load, ["catalog-snapshot-v1"], { revalidate: 60, tags: ["catalog"] });
+const cached = unstable_cache(load, ["catalog-snapshot-v3"], { revalidate: 60, tags: ["catalog"] });
 
 export async function getCatalogSnapshot(): Promise<CatalogData> {
   try {

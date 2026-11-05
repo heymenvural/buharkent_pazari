@@ -21,7 +21,7 @@ async function main() {
       Review.deleteMany({ demo: true }),
       Listing.deleteMany({ demo: true }),
       SellerProfile.deleteMany({ demo: true }),
-      User.deleteMany({ _id: { $in: demoUsers } }),
+      User.deleteMany({ _id: mongoose.trusted({ $in: demoUsers }) }),
     ]);
     console.log("✓ Demo veriler silindi");
     if (process.argv.includes("--only-reset")) return;

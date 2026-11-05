@@ -9,6 +9,7 @@ import { registerSchema, sellerRegisterSchema, verifySchema } from "@/lib/valida
 import { rateLimit } from "@/lib/rateLimit";
 import { checkCode, issueCode } from "@/lib/verification";
 import { sendSellerReceivedEmail } from "@/lib/mailer";
+import { PRODUCT_TYPES } from "@/lib/compliance";
 
 export type FormResult = {
   ok: boolean;
@@ -65,7 +66,7 @@ export async function registerUser(input: unknown): Promise<FormResult> {
   }
 }
 
-/* ---------- Üretici kaydı ---------- */
+/* ---------- Üretici başvurusu ---------- */
 export async function registerSeller(input: unknown): Promise<FormResult> {
   if (!rateLimit(`seller-register:${await clientIp()}`, 3, 60 * 60_000)) return tooMany;
   const parsed = sellerRegisterSchema.safeParse(input);
@@ -77,6 +78,7 @@ export async function registerSeller(input: unknown): Promise<FormResult> {
     if (await User.exists({ email: d.email })) {
       return { ok: false, errors: { email: "Bu e-posta ile zaten bir hesap var." } };
     }
+    const categories = [...new Set(PRODUCT_TYPES.filter((t) => d.productTypes.includes(t.key)).map((t) => t.category))];
     const passwordHash = await bcrypt.hash(d.password, 12);
     const user = await User.create({
       name: d.name,
@@ -90,10 +92,18 @@ export async function registerSeller(input: unknown): Promise<FormResult> {
     await SellerProfile.create({
       user: user._id,
       phone: d.phone,
+      province: d.province,
+      district: d.district,
+      since: d.since,
       village: d.village,
       sellerType: d.sellerType,
-      categories: d.categories,
+      productTypes: d.productTypes,
+      taxStatus: d.taxStatus,
+      categories,
       description: d.description,
+      iban: d.iban,
+      ibanName: d.ibanName,
+      agreementAt: new Date(),
     });
     await sendSellerReceivedEmail(user.email, user.name).catch((e) => console.error("mail error", e));
     return { ok: true, email: user.email };

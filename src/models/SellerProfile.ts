@@ -1,4 +1,5 @@
 import { Schema, model, models, type Model, type Types } from "mongoose";
+import type { TaxStatus } from "@/lib/compliance";
 
 export type SellerKind = "kadin-girisimci" | "genc-ciftci" | "diger";
 
@@ -6,11 +7,18 @@ export interface ISellerProfile {
   _id: Types.ObjectId;
   user: Types.ObjectId;
   phone: string;
-  village: string;
+  province?: string;
+  district?: string;
+  village: string; // mahalle veya köy
   sellerType: SellerKind;
+  productTypes: string[];
+  taxStatus?: TaxStatus;
   categories: string[];
-  description: string;
-  // Mağaza bilgileri (onaydan sonra üretici panelinden düzenlenecek)
+  description: string; // üreticinin kendini tanıttığı kısa metin
+  iban?: string;
+  ibanName?: string;
+  agreementAt?: Date;
+  // Mağaza bilgileri
   slug?: string;
   shopName?: string;
   tagline?: string;
@@ -29,10 +37,17 @@ const SellerProfileSchema = new Schema<ISellerProfile>(
   {
     user: { type: Schema.Types.ObjectId, ref: "User", required: true, unique: true },
     phone: { type: String, required: true, maxlength: 20 },
-    village: { type: String, required: true, trim: true, maxlength: 60 },
+    province: { type: String, maxlength: 30 },
+    district: { type: String, maxlength: 60 },
+    village: { type: String, required: true, trim: true, maxlength: 80 },
     sellerType: { type: String, enum: ["kadin-girisimci", "genc-ciftci", "diger"], required: true },
+    productTypes: { type: [String], default: [] },
+    taxStatus: { type: String, enum: ["ciftci", "muaf910", "muaf96", "mukellef"] },
     categories: { type: [String], default: [] },
     description: { type: String, required: true, trim: true, maxlength: 1000 },
+    iban: { type: String, maxlength: 34 },
+    ibanName: { type: String, trim: true, maxlength: 80 },
+    agreementAt: Date,
     slug: { type: String, unique: true, sparse: true, lowercase: true, trim: true, maxlength: 80 },
     shopName: { type: String, trim: true, maxlength: 80 },
     tagline: { type: String, trim: true, maxlength: 160 },

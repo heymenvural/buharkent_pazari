@@ -3,13 +3,12 @@ import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { connectDB } from "@/lib/db";
-import { User, type Role } from "@/models/User";
+import { User, type Role, type SellerStatus } from "@/models/User";
 import { loginSchema } from "@/lib/validation/auth";
 import { rateLimit } from "@/lib/rateLimit";
 
 class RateLimited extends CredentialsSignin { code = "rate_limited"; }
 class EmailUnverified extends CredentialsSignin { code = "email_unverified"; }
-class SellerPending extends CredentialsSignin { code = "seller_pending"; }
 class SellerRejected extends CredentialsSignin { code = "seller_rejected"; }
 
 const adminEmails = () =>
@@ -40,9 +39,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         // Durum kontrolleri şifre doğrulandıktan SONRA yapılır (hesap durumu dışarıdan sorgulanamaz)
         const isAdmin = adminEmails().includes(email);
-        if (!isAdmin && user.role === "seller" && user.sellerStatus !== "approved") {
-          throw user.sellerStatus === "rejected" ? new SellerRejected() : new SellerPending();
-        }
+        if (!isAdmin && user.role === "seller" && user.sellerStatus === "rejected") throw new SellerRejected();
         if (!isAdmin && user.role === "buyer" && !user.emailVerified) throw new EmailUnverified();
 
         user.lastLoginAt = new Date();
@@ -74,8 +71,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         user.emailVerified = new Date(); // Google e-postayı zaten doğruluyor
         await user.save();
       }
-      if (user && user.role === "seller" && user.sellerStatus !== "approved" && !adminEmails().includes(email)) {
-        return `/giris?tab=uretici&error=${user.sellerStatus === "rejected" ? "SellerRejected" : "SellerPending"}`;
+      if (user && user.role === "seller" && user.sellerStatus === "rejected" && !adminEmails().includes(email)) {
+        return "/giris?tab=uretici&error=SellerRejected";
       }
       return true;
     },
@@ -92,6 +89,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           }
           token.uid = dbUser._id.toString();
           token.role = dbUser.role;
+          token.sellerStatus = dbUser.sellerStatus;
           token.name = dbUser.name;
           token.picture = dbUser.image;
         }
@@ -103,6 +101,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (session.user) {
         session.user.id = (token.uid as string) ?? "";
         session.user.role = ((token.role as Role) ?? "buyer") as Role;
+        session.user.sellerStatus = token.sellerStatus as SellerStatus | undefined;
       }
       return session;
     },
