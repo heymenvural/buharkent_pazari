@@ -1,26 +1,65 @@
 @import "tailwindcss";
 
+@theme {
+  /* Krem / toprak paleti */
+  --color-cream-50: #fdfbf6;
+  --color-cream-100: #faf6ee;
+  --color-cream-200: #f3ebdd;
+  --color-sand-300: #e8dcc4;
+  --color-sand-400: #d6c4a3;
+
+  --color-olive-500: #6b7a3a;
+  --color-olive-700: #4a5627;
+  --color-olive-900: #2f3718;
+
+  --color-terra-500: #c0703f;
+  --color-terra-600: #a65a2e;
+  --color-fig-600: #6e3b4e;
+
+  --color-ink: #2b2620;
+  --color-muted: #7a6f60;
+
+  --font-display: var(--font-display), Georgia, serif;
+  --font-sans: var(--font-sans), system-ui, sans-serif;
+
+  --radius-xl2: 1.25rem;
+  --shadow-soft: 0 10px 30px -12px rgb(43 38 32 / 0.18);
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  background: var(--color-cream-100);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-cream-100);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+::selection {
+  background: var(--color-olive-500);
+  color: var(--color-cream-50);
+}
+
+/* Lenis yumuşak kaydırma */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-stopped { overflow: hidden; }
+
+/* Animasyon azaltma tercihi olanlara saygı */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
