@@ -21,7 +21,9 @@ export interface IListing {
   images: string[];
   rating: number;
   reviewCount: number;
-  status: "active" | "paused" | "pending";
+  status: "active" | "paused" | "pending" | "rejected";
+  adminNote?: string;
+  locked: boolean; // bildirim sonrası admin kaldırdıysa üretici açamaz
   demo: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -47,7 +49,9 @@ const ListingSchema = new Schema<IListing>(
     images: { type: [String], default: [] },
     rating: { type: Number, default: 0, min: 0, max: 5 },
     reviewCount: { type: Number, default: 0, min: 0 },
-    status: { type: String, enum: ["active", "paused", "pending"], default: "pending", index: true },
+    status: { type: String, enum: ["active", "paused", "pending", "rejected"], default: "pending", index: true },
+    adminNote: { type: String, maxlength: 300 },
+    locked: { type: Boolean, default: false },
     demo: { type: Boolean, default: false },
   },
   { timestamps: true }

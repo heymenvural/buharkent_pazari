@@ -1,8 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { BadgeCheck, CalendarDays, ChevronRight, MapPin, Package, Quote, ShieldCheck, Sprout, Star } from "lucide-react";
+import { BadgeCheck, CalendarDays, ChevronRight, MapPin, Package, Quote, ShieldCheck, Sprout, Star, Truck } from "lucide-react";
 import {
   formatPrice, getProductById, getSellerBySlug, initials, offerReviews, sellerGradient, sellerOffers,
 } from "@/lib/catalog";
@@ -30,6 +31,7 @@ export default function SellerProfile({ slug }: { slug: string }) {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.8, ease }}
       >
+        {seller.cover && <Image src={seller.cover} alt="" fill priority sizes="(max-width: 1280px) 100vw, 1280px" className="object-cover" />}
         <motion.span
           className="absolute -bottom-10 right-6 text-cream-50/15"
           animate={{ rotate: [-6, 4, -6], y: [0, -10, 0] }}
@@ -42,12 +44,16 @@ export default function SellerProfile({ slug }: { slug: string }) {
       {/* Profil */}
       <div className="px-2 md:px-8">
         <motion.span
-          className={`-mt-14 grid h-28 w-28 place-items-center rounded-full border-4 border-cream-100 bg-gradient-to-br font-display text-4xl text-cream-50 shadow-soft ${sellerGradient(seller.type)}`}
+          className={`-mt-14 grid h-28 w-28 place-items-center overflow-hidden rounded-full border-4 border-cream-100 bg-gradient-to-br font-display text-4xl text-cream-50 shadow-soft ${sellerGradient(seller.type)}`}
           initial={{ scale: 0.5, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.3, type: "spring", stiffness: 200, damping: 15 }}
         >
-          {initials(seller.name)}
+          {seller.avatar ? (
+            <Image src={seller.avatar} alt={seller.name} width={112} height={112} className="h-full w-full rounded-full object-cover" />
+          ) : (
+            initials(seller.name)
+          )}
         </motion.span>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.6 }}>
           <h1 className="mt-4 text-4xl text-olive-900 md:text-5xl">{seller.name}</h1>
@@ -71,6 +77,9 @@ export default function SellerProfile({ slug }: { slug: string }) {
             <span className="flex items-center gap-1.5"><CalendarDays className="h-4 w-4" /> {seller.since}&apos;den beri</span>
             <span className="flex items-center gap-1.5"><Star className="h-4 w-4 fill-terra-500 text-terra-500" /> {seller.rating.toFixed(1)} ({totalReviews})</span>
             <span className="flex items-center gap-1.5"><Package className="h-4 w-4" /> {list.length} ürün</span>
+            {!!seller.freeShippingOver && (
+              <span className="flex items-center gap-1.5 font-semibold text-olive-700"><Truck className="h-4 w-4" /> {formatPrice(seller.freeShippingOver)} üzeri kargo ücretsiz</span>
+            )}
           </div>
         </motion.div>
       </div>

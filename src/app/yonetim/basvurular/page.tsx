@@ -4,11 +4,11 @@ import { auth } from "@/auth";
 import { connectDB } from "@/lib/db";
 import { SellerProfile } from "@/models/SellerProfile";
 import { SellerDocument } from "@/models/SellerDocument";
-import { Report } from "@/models/Report";
 import { User, type IUser } from "@/models/User";
 import { PRODUCT_TYPES, TAX_OPTIONS, requirementsFor } from "@/lib/compliance";
 import { maskIban } from "@/lib/iban";
 import AdminNav from "@/components/admin/AdminNav";
+import { adminCounts } from "@/lib/data/admin.server";
 import ApplicationsAdmin, { type AppItem } from "@/components/admin/ApplicationsAdmin";
 
 export const metadata: Metadata = { title: "Üretici başvuruları", robots: { index: false } };
@@ -20,7 +20,7 @@ export default async function ApplicationsPage() {
   if (session?.user?.role !== "admin") notFound();
 
   await connectDB();
-  const [rows, docs, openReports] = await Promise.all([
+  const [rows, docs, counts] = await Promise.all([
     SellerProfile.find({ demo: { $ne: true } })
       .populate<{ user: Pick<IUser, "_id" | "name" | "email" | "phone" | "sellerStatus"> | null }>({
         path: "user",
@@ -31,7 +31,7 @@ export default async function ApplicationsPage() {
       .limit(300)
       .lean(),
     SellerDocument.find().select("user docKey status note updatedAt").lean(),
-    Report.countDocuments({ status: "open" }),
+    adminCounts(),
   ]);
 
   const items: AppItem[] = rows
@@ -72,7 +72,7 @@ export default async function ApplicationsPage() {
 
   return (
     <main className="px-4 pb-20 pt-[164px] md:px-8 md:pt-[150px]">
-      <AdminNav active="/yonetim/basvurular" counts={{ "/yonetim/basvurular": items.filter((i) => i.status === "pending").length, "/yonetim/bildirimler": openReports }} />
+      <AdminNav active="/yonetim/basvurular" counts={counts} />
       <ApplicationsAdmin items={items} />
     </main>
   );

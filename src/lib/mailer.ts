@@ -83,3 +83,17 @@ export async function sendListingRemovedEmail(to: string, name: string, productN
   const body = `<p style="margin:0;line-height:1.6">Merhaba ${esc(name)}, <b>${esc(productName)}</b> ilanın hakkında gelen bir bildirim sonrası yayından kaldırıldı. Detaylar için bizimle iletişime geçebilirsin.</p>`;
   await getTransport().sendMail({ from: from(), to, subject: "İlanın yayından kaldırıldı", html: layout("İlanın yayından kaldırıldı", body) });
 }
+
+export async function sendListingDecisionEmail(to: string, name: string, productName: string, approved: boolean, note?: string) {
+  const body = approved
+    ? `<p style="margin:0 0 20px;line-height:1.6">Merhaba ${esc(name)}, <b>${esc(productName)}</b> ürünün onaylandı ve artık sitede satışta. Bundan sonra eklediğin ürünler doğrudan yayına girecek.</p>
+       <a href="${siteUrl()}/panel" style="display:inline-block;background:#4a5627;color:#fdfbf6;text-decoration:none;padding:14px 28px;border-radius:999px;font-weight:bold">Panelime git</a>`
+    : `<p style="margin:0 0 20px;line-height:1.6">Merhaba ${esc(name)}, <b>${esc(productName)}</b> ürününde düzeltme gerekiyor.${note ? `<br><br><b>Not:</b> ${esc(note)}` : ""}<br><br>Panelinden ürünü düzenleyip tekrar gönderebilirsin.</p>
+       <a href="${siteUrl()}/panel" style="display:inline-block;background:#4a5627;color:#fdfbf6;text-decoration:none;padding:14px 28px;border-radius:999px;font-weight:bold">Panelime git</a>`;
+  await getTransport().sendMail({
+    from: from(),
+    to,
+    subject: approved ? `Ürünün yayında: ${productName}` : `Ürününde düzeltme gerekiyor: ${productName}`,
+    html: layout(approved ? "Ürünün yayında 🎉" : "Ürününde düzeltme gerekiyor", body),
+  });
+}

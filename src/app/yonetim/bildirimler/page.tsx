@@ -9,6 +9,7 @@ import { SellerProfile } from "@/models/SellerProfile";
 import { User } from "@/models/User";
 import { reasonLabel } from "@/lib/reports";
 import AdminNav from "@/components/admin/AdminNav";
+import { adminCounts } from "@/lib/data/admin.server";
 import ReportsAdmin, { type ReportItem } from "@/components/admin/ReportsAdmin";
 
 export const metadata: Metadata = { title: "Ürün bildirimleri", robots: { index: false } };
@@ -22,11 +23,11 @@ export default async function ReportsPage() {
   const reports = await Report.find().sort({ createdAt: -1 }).limit(300).lean();
   const listingIds = [...new Set(reports.map((r) => r.listing.toString()))];
   const listings = await Listing.find({ _id: { $in: listingIds } }).select("product seller status").lean();
-  const [products, profiles, users, pendingApps] = await Promise.all([
+  const [products, profiles, users, counts] = await Promise.all([
     Product.find({ _id: { $in: listings.map((l) => l.product) } }).select("name slug").lean(),
     SellerProfile.find({ user: { $in: listings.map((l) => l.seller) } }).select("user shopName slug").lean(),
     User.find({ _id: { $in: listings.map((l) => l.seller) } }).select("name").lean(),
-    User.countDocuments({ role: "seller", sellerStatus: "pending" }),
+    adminCounts(),
   ]);
 
   const items: ReportItem[] = reports.map((r) => {
@@ -50,7 +51,7 @@ export default async function ReportsPage() {
 
   return (
     <main className="px-4 pb-20 pt-[164px] md:px-8 md:pt-[150px]">
-      <AdminNav active="/yonetim/bildirimler" counts={{ "/yonetim/basvurular": pendingApps, "/yonetim/bildirimler": items.filter((i) => i.status === "open").length }} />
+      <AdminNav active="/yonetim/bildirimler" counts={counts} />
       <ReportsAdmin items={items} />
     </main>
   );

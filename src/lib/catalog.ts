@@ -19,6 +19,9 @@ export type Seller = {
   story: string[];
   verified: boolean;
   badges?: string[];
+  avatar?: string;
+  cover?: string;
+  freeShippingOver?: number;
 };
 
 export type Category = { slug: string; name: string; short: string; icon: LucideIcon; bg: string };

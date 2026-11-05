@@ -93,7 +93,7 @@ export default function ApplicationView({ data }: { data: ApplicationData }) {
 
   const banner =
     data.status === "approved"
-      ? { cls: "bg-olive-700 text-cream-50", icon: BadgeCheck, title: "Başvurun onaylandı!", text: "Artık Buharkent Pazarı üreticisisin. Ürün ekleme paneli çok yakında burada olacak." }
+      ? { cls: "bg-olive-700 text-cream-50", icon: BadgeCheck, title: "Başvurun onaylandı!", text: "Artık Buharkent Pazarı üreticisisin. Üretici panelinden ürünlerini ekleyebilirsin." }
       : data.status === "rejected"
       ? { cls: "bg-terra-600 text-cream-50", icon: XCircle, title: "Başvurun onaylanmadı", text: "Detaylar için e-postanı kontrol et veya bizimle iletişime geç." }
       : { cls: "bg-[#e0a84a] text-ink", icon: Clock, title: "Üyeliğin henüz onaylanmadı", text: "Aşağıdaki belgelerini yükle. Ekibimiz başvurunu inceleyip seni arayacak." };
@@ -108,6 +108,11 @@ export default function ApplicationView({ data }: { data: ApplicationData }) {
           <h1 className="text-3xl">{banner.title}</h1>
           <p className="mt-1 opacity-90">{banner.text}</p>
         </div>
+        {data.status === "approved" && (
+          <Link href="/panel" className="shrink-0 rounded-full bg-cream-50 px-6 py-3 text-center font-semibold text-olive-900 hover:bg-sand-300">
+            Üretici paneline git
+          </Link>
+        )}
       </motion.div>
 
       {/* Belgeler */}

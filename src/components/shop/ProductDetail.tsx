@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useRef, useState } from "react";
@@ -13,6 +14,7 @@ import { flyToCart } from "@/lib/flyToCart";
 import { toCartItem } from "@/lib/cartLine";
 import ProductCard from "@/components/shop/ProductCard";
 import ReportButton from "@/components/shop/ReportButton";
+import { unitPrice } from "@/lib/units";
 import {
   catalog, discountPct, formatPrice, getCategory, getProduct, getSeller, initials, linesFor,
   offerReviews, offersFor, productRating, sellerGradient, variantLabels,
@@ -56,6 +58,9 @@ export default function ProductDetail({ slug, initialSeller }: { slug: string; i
   const lines = useMemo(() => linesFor(product.id, label), [product.id, label]);
   const current = lines.find((l) => l.seller.slug === sellerSlug) ?? lines.find((l) => l.variant.stock > 0) ?? lines[0];
   const reviewsList = current ? offerReviews(current.offer.id) : [];
+  // Üreticinin kendi fotoğrafları varsa onlar, yoksa katalog görselleri, o da yoksa ikon gösterilir
+  const photos = (current?.offer.images?.length ? current.offer.images : product.images ?? []).slice(0, 6);
+  const photo = photos.length ? photos[thumb % photos.length] : undefined;
 
   const related = useMemo(() => {
     const same = catalog.filter((p) => p.category === product.category && p.id !== product.id);
@@ -66,6 +71,7 @@ export default function ProductDetail({ slug, initialSeller }: { slug: string; i
   const select = (s: string) => {
     setSellerSlug(s);
     setQty(1);
+    setThumb(0);
     router.replace(`/urun/${product.slug}?uretici=${s}`, { scroll: false });
   };
 
@@ -105,11 +111,15 @@ export default function ProductDetail({ slug, initialSeller }: { slug: string; i
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.5, ease }}
               >
-                <Icon
-                  strokeWidth={0.8}
-                  style={{ rotate: `${[-6, 8, -14, 18][thumb]}deg` }}
-                  className={`h-1/2 w-1/2 ${product.light ? "text-olive-700/40" : "text-cream-50/45"}`}
-                />
+                {photo ? (
+                  <Image src={photo} alt={product.name} fill priority sizes="(max-width: 1024px) 100vw, 600px" className="object-cover" />
+                ) : (
+                  <Icon
+                    strokeWidth={0.8}
+                    style={{ rotate: `${[-6, 8, -14, 18][thumb % 4]}deg` }}
+                    className={`h-1/2 w-1/2 ${product.light ? "text-olive-700/40" : "text-cream-50/45"}`}
+                  />
+                )}
               </motion.span>
             </AnimatePresence>
             {current && (
@@ -118,6 +128,22 @@ export default function ProductDetail({ slug, initialSeller }: { slug: string; i
               </span>
             )}
           </div>
+          {photos.length > 1 ? (
+            <div className="mt-3 grid grid-cols-4 gap-3 sm:grid-cols-6">
+              {photos.map((src, i) => (
+                <button
+                  key={src}
+                  onClick={() => setThumb(i)}
+                  aria-label={`Görsel ${i + 1}`}
+                  className={`relative aspect-square overflow-hidden rounded-2xl bg-sand-300 transition-all ${
+                    thumb === i ? "ring-2 ring-olive-700 ring-offset-2 ring-offset-cream-100" : "opacity-70 hover:opacity-100"
+                  }`}
+                >
+                  <Image src={src} alt="" fill sizes="120px" className="object-cover" />
+                </button>
+              ))}
+            </div>
+          ) : photos.length === 0 ? (
           <div className="mt-3 grid grid-cols-4 gap-3">
             {[0, 1, 2, 3].map((i) => (
               <button
@@ -132,6 +158,7 @@ export default function ProductDetail({ slug, initialSeller }: { slug: string; i
               </button>
             ))}
           </div>
+          ) : null}
         </div>
 
         {/* Bilgi + seçim */}
@@ -219,6 +246,7 @@ export default function ProductDetail({ slug, initialSeller }: { slug: string; i
                   <span className="shrink-0 text-right">
                     {l.variant.oldPrice && <span className="block text-xs text-muted line-through">{formatPrice(l.variant.oldPrice)}</span>}
                     <span className="block font-bold text-olive-900">{formatPrice(l.variant.price)}</span>
+                    {unitPrice(l.variant.label, l.variant.price) && <span className="block text-[11px] text-muted">{unitPrice(l.variant.label, l.variant.price)}</span>}
                     <span className="block text-[11px] text-muted">{out ? "Stokta yok" : `Kargo dahil ${formatPrice(total)}`}</span>
                   </span>
                 </button>
@@ -290,6 +318,11 @@ export default function ProductDetail({ slug, initialSeller }: { slug: string; i
                       <span className="ml-2 inline-flex items-center gap-1 text-xs font-normal text-muted">
                         <Clock className="h-3 w-3" /> {current.offer.shipsIn} içinde
                       </span>
+                      {!!current.seller.freeShippingOver && (
+                        <span className="mt-1 block text-xs font-normal text-olive-700">
+                          Bu üreticiden {formatPrice(current.seller.freeShippingOver)} ve üzeri alışverişte kargo ücretsiz
+                        </span>
+                      )}
                     </dd>
                   </div>
                 </dl>

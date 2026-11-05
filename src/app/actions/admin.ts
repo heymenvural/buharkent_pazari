@@ -12,7 +12,7 @@ import { Product } from "@/models/Product";
 import { Report } from "@/models/Report";
 import { DOCS, requirementsFor } from "@/lib/compliance";
 import { slugify } from "@/lib/slug";
-import { sendDocumentRejectedEmail, sendListingRemovedEmail, sendSellerDecisionEmail } from "@/lib/mailer";
+import { sendDocumentRejectedEmail, sendListingDecisionEmail, sendListingRemovedEmail, sendSellerDecisionEmail } from "@/lib/mailer";
 
 type Result = { ok: boolean; error?: string };
 
@@ -122,8 +122,9 @@ export async function resolveReport(reportId: string, action: "remove" | "dismis
   const stamp = { resolvedAt: new Date(), ...(adminId ? { resolvedBy: adminId } : {}) };
 
   if (action === "remove") {
-    if (listing && listing.status !== "paused") {
+    if (listing && !listing.locked) {
       listing.status = "paused";
+      listing.locked = true; // üretici kendisi tekrar açamaz
       await listing.save();
       const [seller, product] = await Promise.all([User.findById(listing.seller), Product.findById(listing.product)]);
       if (seller && product) await sendListingRemovedEmail(seller.email, seller.name, product.name).catch((e) => console.error("mail error", e));
@@ -136,6 +137,7 @@ export async function resolveReport(reportId: string, action: "remove" | "dismis
   } else {
     if (listing) {
       listing.status = "active";
+      listing.locked = false;
       await listing.save();
     }
     report.set({ status: "dismissed", ...stamp });
@@ -144,5 +146,43 @@ export async function resolveReport(reportId: string, action: "remove" | "dismis
 
   updateTag("catalog");
   revalidatePath("/yonetim/bildirimler");
+  return { ok: true };
+}
+
+/* ---------- Ürün (ilan) onayı ---------- */
+export async function decideListing(listingId: string, decision: "approve" | "reject", reason?: string): Promise<Result> {
+  const adminId = await requireAdmin();
+  if (adminId === null) return { ok: false, error: "Bu işlem için yetkiniz yok." };
+  if (!isValidObjectId(listingId) || (decision !== "approve" && decision !== "reject")) return { ok: false, error: "Geçersiz istek." };
+  const note = cleanNote(reason);
+  if (decision === "reject" && !note) return { ok: false, error: "Üreticinin neyi düzelteceğini bilmesi için bir not yaz." };
+
+  await connectDB();
+  const listing = await Listing.findById(listingId);
+  if (!listing) return { ok: false, error: "Ürün bulunamadı." };
+  const [product, user] = await Promise.all([Product.findById(listing.product), User.findById(listing.seller)]);
+
+  if (decision === "approve") {
+    if (user?.sellerStatus !== "approved") return { ok: false, error: "Üreticinin satış izni yok." };
+    listing.status = "active";
+    listing.adminNote = undefined;
+    if (product && !product.active) {
+      product.active = true;
+      await product.save();
+    }
+    // İlk ürünü onaylanan üreticinin sonraki ürünleri doğrudan yayına girer
+    await SellerProfile.updateOne({ user: listing.seller }, { trusted: true });
+  } else {
+    listing.status = "rejected";
+    listing.adminNote = note;
+  }
+  await listing.save();
+
+  if (user && product) {
+    await sendListingDecisionEmail(user.email, user.name, product.name, decision === "approve", note).catch((e) => console.error("mail error", e));
+  }
+
+  updateTag("catalog");
+  revalidatePath("/yonetim/urunler");
   return { ok: true };
 }

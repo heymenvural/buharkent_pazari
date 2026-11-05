@@ -88,6 +88,9 @@ async function load(): Promise<CatalogData> {
         tagline: p.tagline ?? p.description.slice(0, 160),
         story: p.story?.length ? p.story : [p.description],
         verified: p.verified,
+        ...(p.avatar ? { avatar: p.avatar } : {}),
+        ...(p.cover ? { cover: p.cover } : {}),
+        ...(p.freeShippingOver ? { freeShippingOver: p.freeShippingOver } : {}),
         badges: docs.filter((d) => d.user.toString() === uid).map((d) => BADGE[d.docKey]).filter((b): b is string => !!b),
       };
     }),

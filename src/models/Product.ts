@@ -14,6 +14,8 @@ export interface IProduct {
   images: string[];
   tags: Tag[];
   active: boolean;
+  productType?: string; // compliance.ts PRODUCT_TYPES anahtarı
+  createdBy?: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -30,6 +32,8 @@ const ProductSchema = new Schema<IProduct>(
     images: { type: [String], default: [] },
     tags: { type: [String], enum: ["firsat", "cok-satan", "yeni"], default: [] },
     active: { type: Boolean, default: true, index: true },
+    productType: { type: String, maxlength: 40, index: true },
+    createdBy: { type: Schema.Types.ObjectId, ref: "User" },
   },
   { timestamps: true }
 );

@@ -19,8 +19,8 @@ export default function AccountView({ name, email, role }: { name: string; email
     { icon: Package, title: "Siparişlerim", text: "Siparişlerini ve kargo durumlarını takip et." },
     { icon: MapPin, title: "Adreslerim", text: "Teslimat adreslerini kaydet, hızlı öde." },
     { icon: Heart, title: "Favorilerim", text: "Beğendiğin ürün ve üreticiler." },
-    ...(role !== "buyer" ? [{ icon: Store, title: "Üretici paneli", text: "Ürünlerini ve siparişlerini yönet." }] : []),
-    ...(role === "admin" ? [{ icon: ShieldCheck, title: "Üretici başvuruları", text: "Bekleyen başvuruları incele ve onayla.", href: "/yonetim/basvurular" }] : []),
+    ...(role !== "buyer" ? [{ icon: Store, title: "Üretici paneli", text: "Ürünlerini ve mağazanı yönet.", href: "/panel" }] : []),
+    ...(role === "admin" ? [{ icon: ShieldCheck, title: "Yönetim paneli", text: "Başvurular, ürün onayı ve bildirimler.", href: "/yonetim/basvurular" }] : []),
   ];
 
   return (

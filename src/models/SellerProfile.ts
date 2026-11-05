@@ -25,6 +25,10 @@ export interface ISellerProfile {
   story: string[];
   since?: number;
   verified: boolean;
+  trusted: boolean; // ilk ürünü admin onayından geçti mi
+  avatar?: string;
+  cover?: string;
+  freeShippingOver?: number;
   demo: boolean;
   reviewedAt?: Date;
   reviewedBy?: Types.ObjectId;
@@ -54,6 +58,10 @@ const SellerProfileSchema = new Schema<ISellerProfile>(
     story: { type: [String], default: [] },
     since: { type: Number, min: 1950, max: 2100 },
     verified: { type: Boolean, default: false },
+    trusted: { type: Boolean, default: false },
+    avatar: { type: String, maxlength: 300 },
+    cover: { type: String, maxlength: 300 },
+    freeShippingOver: { type: Number, min: 0, max: 100_000 },
     demo: { type: Boolean, default: false },
     reviewedAt: Date,
     reviewedBy: { type: Schema.Types.ObjectId, ref: "User" },

@@ -9,7 +9,7 @@ export default async function AccountPage() {
   const session = await auth();
   if (!session?.user) redirect("/giris?next=/hesabim");
   // Onaylanmamış üretici sadece başvuru sayfasını görebilir
-  if (session.user.role === "seller" && session.user.sellerStatus !== "approved") redirect("/basvurum");
+  if (session.user.role === "seller") redirect(session.user.sellerStatus === "approved" ? "/panel" : "/basvurum");
 
   return (
     <main className="px-4 pb-20 pt-[164px] md:px-8 md:pt-[150px]">
