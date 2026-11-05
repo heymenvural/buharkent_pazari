@@ -7,9 +7,10 @@ import { User, type Role } from "@/models/User";
 import { loginSchema } from "@/lib/validation/auth";
 import { rateLimit } from "@/lib/rateLimit";
 
-class RateLimited extends CredentialsSignin {
-  code = "rate_limited";
-}
+class RateLimited extends CredentialsSignin { code = "rate_limited"; }
+class EmailUnverified extends CredentialsSignin { code = "email_unverified"; }
+class SellerPending extends CredentialsSignin { code = "seller_pending"; }
+class SellerRejected extends CredentialsSignin { code = "seller_rejected"; }
 
 const adminEmails = () =>
   (process.env.ADMIN_EMAILS ?? "")
@@ -35,9 +36,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         await connectDB();
         const user = await User.findOne({ email }).select("+passwordHash");
         if (!user?.passwordHash) return null;
+        if (!(await bcrypt.compare(password, user.passwordHash))) return null;
 
-        const ok = await bcrypt.compare(password, user.passwordHash);
-        if (!ok) return null;
+        // Durum kontrolleri şifre doğrulandıktan SONRA yapılır (hesap durumu dışarıdan sorgulanamaz)
+        const isAdmin = adminEmails().includes(email);
+        if (!isAdmin && user.role === "seller" && user.sellerStatus !== "approved") {
+          throw user.sellerStatus === "rejected" ? new SellerRejected() : new SellerPending();
+        }
+        if (!isAdmin && user.role === "buyer" && !user.emailVerified) throw new EmailUnverified();
 
         user.lastLoginAt = new Date();
         await user.save();
@@ -47,20 +53,29 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     async signIn({ account, profile }) {
-      if (account?.provider === "google") {
-        if (!profile?.email || profile.email_verified === false) return false;
-        await connectDB();
-        const email = profile.email.toLowerCase();
-        const image = typeof profile.picture === "string" ? profile.picture.slice(0, 500) : undefined;
-        await User.updateOne(
-          { email },
-          {
-            $setOnInsert: { name: (profile.name ?? email.split("@")[0]).slice(0, 80), email, role: "buyer" },
-            $set: { lastLoginAt: new Date(), ...(image ? { image } : {}) },
-            $addToSet: { providers: "google" },
-          },
-          { upsert: true }
-        );
+      if (account?.provider !== "google") return true;
+      if (!profile?.email || profile.email_verified === false) return false;
+
+      await connectDB();
+      const email = profile.email.toLowerCase();
+      const image = typeof profile.picture === "string" ? profile.picture.slice(0, 500) : undefined;
+      await User.updateOne(
+        { email },
+        {
+          $setOnInsert: { name: (profile.name ?? email.split("@")[0]).slice(0, 80), email, role: "buyer" },
+          $set: { lastLoginAt: new Date(), ...(image ? { image } : {}) },
+          $addToSet: { providers: "google" },
+        },
+        { upsert: true }
+      );
+
+      const user = await User.findOne({ email });
+      if (user && !user.emailVerified) {
+        user.emailVerified = new Date(); // Google e-postayı zaten doğruluyor
+        await user.save();
+      }
+      if (user && user.role === "seller" && user.sellerStatus !== "approved" && !adminEmails().includes(email)) {
+        return `/giris?tab=uretici&error=${user.sellerStatus === "rejected" ? "SellerRejected" : "SellerPending"}`;
       }
       return true;
     },
@@ -71,7 +86,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const email = (token.email ?? user?.email ?? "").toLowerCase();
         const dbUser = await User.findOne({ email });
         if (dbUser) {
-          // Admin rolü sadece ortam değişkenindeki e-postalara verilir
           if (adminEmails().includes(email) && dbUser.role !== "admin") {
             dbUser.role = "admin";
             await dbUser.save();

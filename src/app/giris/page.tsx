@@ -7,7 +7,9 @@ import { safeNext } from "@/lib/safeNext";
 
 export const metadata: Metadata = { title: "Giriş yap", robots: { index: false } };
 
-type Props = { searchParams: Promise<{ next?: string | string[]; error?: string | string[] }> };
+type Props = {
+  searchParams: Promise<{ next?: string | string[]; error?: string | string[]; tab?: string; verified?: string }>;
+};
 
 export default async function LoginPage({ searchParams }: Props) {
   const sp = await searchParams;
@@ -20,7 +22,12 @@ export default async function LoginPage({ searchParams }: Props) {
   return (
     <main className="px-4 pb-20 pt-[164px] md:px-8 md:pt-[150px]">
       <AuthShell title="Tekrar hoş geldin" subtitle="Hesabına giriş yap.">
-        <LoginForm next={next} initialError={error} />
+        <LoginForm
+          next={next}
+          initialError={error}
+          initialTab={sp.tab === "uretici" ? "uretici" : "musteri"}
+          verified={sp.verified === "1"}
+        />
       </AuthShell>
     </main>
   );

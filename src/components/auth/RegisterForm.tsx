@@ -3,13 +3,10 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { signIn } from "next-auth/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import GoogleButton from "@/components/auth/GoogleButton";
-import { registerUser, type RegisterResult } from "@/app/actions/auth";
-
-type Errors = NonNullable<RegisterResult["errors"]>;
+import { registerUser } from "@/app/actions/auth";
 
 const inputCls = (err?: string) =>
   `w-full rounded-2xl border bg-cream-100 px-4 py-3.5 text-ink outline-none transition-colors focus:border-olive-500 ${err ? "border-terra-500" : "border-sand-300"}`;
@@ -25,7 +22,7 @@ function strength(p: string) {
 const levels = ["Çok zayıf", "Zayıf", "Orta", "İyi", "Güçlü"];
 const colors = ["bg-terra-600", "bg-terra-500", "bg-[#e0a84a]", "bg-olive-500", "bg-olive-700"];
 
-function Err({ msg }: { msg?: string }) {
+export function Err({ msg }: { msg?: string }) {
   return (
     <AnimatePresence>
       {msg && (
@@ -41,32 +38,24 @@ export default function RegisterForm({ next }: { next: string }) {
   const router = useRouter();
   const [form, setForm] = useState({ name: "", email: "", password: "", kvkk: false });
   const [show, setShow] = useState(false);
-  const [errors, setErrors] = useState<Errors>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const score = strength(form.password);
 
   const set = <K extends keyof typeof form>(k: K, v: (typeof form)[K]) => {
     setForm((f) => ({ ...f, [k]: v }));
-    setErrors((e) => ({ ...e, [k]: undefined, form: undefined }));
+    setErrors((e) => ({ ...e, [k]: "", form: "" }));
   };
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     const res = await registerUser(form);
-    if (!res.ok) {
-      setErrors(res.errors ?? {});
-      setLoading(false);
-      return;
-    }
-    const login = await signIn("credentials", { email: form.email, password: form.password, redirect: false });
     setLoading(false);
-    if (login?.error) {
-      router.push("/giris");
-      return;
-    }
-    router.push(next);
-    router.refresh();
+    if (!res.ok) return setErrors(res.errors ?? {});
+    const q = new URLSearchParams({ email: res.email ?? form.email });
+    if (res.notice) q.set("notice", "1");
+    router.push(`/dogrula?${q.toString()}`);
   };
 
   return (
@@ -106,7 +95,7 @@ export default function RegisterForm({ next }: { next: string }) {
             <span className="mt-2 flex items-center gap-2">
               <span className="flex flex-1 gap-1">
                 {[0, 1, 2, 3].map((i) => (
-                  <motion.span key={i} className={`h-1.5 flex-1 rounded-full ${i < score ? colors[score] : "bg-sand-300"}`} layout />
+                  <span key={i} className={`h-1.5 flex-1 rounded-full transition-colors ${i < score ? colors[score] : "bg-sand-300"}`} />
                 ))}
               </span>
               <span className="w-16 text-right text-xs text-muted">{levels[score]}</span>
@@ -118,17 +107,13 @@ export default function RegisterForm({ next }: { next: string }) {
 
         <label className="flex cursor-pointer items-start gap-3 pt-1">
           <input type="checkbox" checked={form.kvkk} onChange={(e) => set("kvkk", e.target.checked)} className="mt-0.5 h-5 w-5 shrink-0 accent-[#4a5627]" />
-          <span className="text-sm text-ink/80"><Link href="/kvkk" target="_blank" className="font-semibold text-olive-700 underline">KVKK Aydınlatma Metni</Link></span>
+          <span className="text-sm text-ink/80">
+            <Link href="/kvkk" target="_blank" className="font-semibold text-olive-700 underline">KVKK Aydınlatma Metni</Link>&apos;ni okudum, üyelik için kişisel verilerimin işlenmesini onaylıyorum.
+          </span>
         </label>
         <Err msg={errors.kvkk} />
 
-        <AnimatePresence>
-          {errors.form && (
-            <motion.p initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="rounded-2xl bg-terra-500/10 px-4 py-3 text-sm font-medium text-terra-600">
-              {errors.form}
-            </motion.p>
-          )}
-        </AnimatePresence>
+        {errors.form && <p className="rounded-2xl bg-terra-500/10 px-4 py-3 text-sm font-medium text-terra-600">{errors.form}</p>}
 
         <button
           type="submit"

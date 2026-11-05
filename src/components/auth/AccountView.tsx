@@ -3,21 +3,24 @@
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { motion } from "framer-motion";
-import { Heart, LogOut, MapPin, Package, ShieldCheck, Store } from "lucide-react";
+import { ArrowUpRight, Heart, LogOut, MapPin, Package, ShieldCheck, Store } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import type { Role } from "@/models/User";
 
 const ease = [0.76, 0, 0.24, 1] as const;
-const roleLabel: Record<Role, string> = { buyer: "Alıcı", seller: "Üretici", admin: "Yönetici" };
+const roleLabel: Record<Role, string> = { buyer: "Müşteri", seller: "Üretici", admin: "Yönetici" };
+
+type Card = { icon: LucideIcon; title: string; text: string; href?: string };
 
 export default function AccountView({ name, email, role }: { name: string; email: string; role: Role }) {
   const initials = name.split(" ").slice(0, 2).map((w) => w[0]?.toLocaleUpperCase("tr")).join("");
 
-  const cards = [
-    { icon: Package, title: "Siparişlerim", text: "Siparişlerini ve kargo durumlarını takip et.", soon: true },
-    { icon: MapPin, title: "Adreslerim", text: "Teslimat adreslerini kaydet, hızlı öde.", soon: true },
-    { icon: Heart, title: "Favorilerim", text: "Beğendiğin ürün ve üreticiler.", soon: true },
-    ...(role !== "buyer" ? [{ icon: Store, title: "Üretici paneli", text: "Ürünlerini ve siparişlerini yönet.", soon: true }] : []),
-    ...(role === "admin" ? [{ icon: ShieldCheck, title: "Yönetim paneli", text: "Üreticiler, katalog ve onaylar.", soon: true }] : []),
+  const cards: Card[] = [
+    { icon: Package, title: "Siparişlerim", text: "Siparişlerini ve kargo durumlarını takip et." },
+    { icon: MapPin, title: "Adreslerim", text: "Teslimat adreslerini kaydet, hızlı öde." },
+    { icon: Heart, title: "Favorilerim", text: "Beğendiğin ürün ve üreticiler." },
+    ...(role !== "buyer" ? [{ icon: Store, title: "Üretici paneli", text: "Ürünlerini ve siparişlerini yönet." }] : []),
+    ...(role === "admin" ? [{ icon: ShieldCheck, title: "Üretici başvuruları", text: "Bekleyen başvuruları incele ve onayla.", href: "/yonetim/basvurular" }] : []),
   ];
 
   return (
@@ -49,20 +52,27 @@ export default function AccountView({ name, email, role }: { name: string; email
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {cards.map((c, i) => {
           const Icon = c.icon;
-          return (
-            <motion.div
-              key={c.title}
-              className="relative rounded-[1.75rem] bg-cream-50 p-6 shadow-soft"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 + i * 0.07, duration: 0.6, ease }}
-            >
-              {c.soon && <span className="absolute right-5 top-5 rounded-full bg-sand-300 px-2.5 py-0.5 text-[10px] font-bold text-olive-900">Yakında</span>}
+          const inner = (
+            <>
+              <span className={`absolute right-5 top-5 rounded-full px-2.5 py-0.5 text-[10px] font-bold ${c.href ? "bg-olive-700 text-cream-50" : "bg-sand-300 text-olive-900"}`}>
+                {c.href ? <ArrowUpRight className="h-3.5 w-3.5" /> : "Yakında"}
+              </span>
               <span className="grid h-12 w-12 place-items-center rounded-2xl bg-olive-700/10 text-olive-700">
                 <Icon className="h-6 w-6" />
               </span>
               <h2 className="mt-5 text-2xl text-olive-900">{c.title}</h2>
               <p className="mt-1 text-sm text-muted">{c.text}</p>
+            </>
+          );
+          return (
+            <motion.div key={c.title} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + i * 0.07, duration: 0.6, ease }}>
+              {c.href ? (
+                <Link href={c.href} className="relative block h-full rounded-[1.75rem] bg-cream-50 p-6 shadow-soft transition-transform hover:-translate-y-1">
+                  {inner}
+                </Link>
+              ) : (
+                <div className="relative h-full rounded-[1.75rem] bg-cream-50 p-6 shadow-soft">{inner}</div>
+              )}
             </motion.div>
           );
         })}

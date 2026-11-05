@@ -1,6 +1,7 @@
 import { Schema, model, models, type Model, type Types } from "mongoose";
 
 export type Role = "buyer" | "seller" | "admin";
+export type SellerStatus = "pending" | "approved" | "rejected";
 
 export interface IUser {
   _id: Types.ObjectId;
@@ -8,7 +9,10 @@ export interface IUser {
   email: string;
   passwordHash?: string;
   image?: string;
+  phone?: string;
   role: Role;
+  sellerStatus?: SellerStatus;
+  emailVerified?: Date;
   providers: string[];
   lastLoginAt?: Date;
   createdAt: Date;
@@ -21,7 +25,10 @@ const UserSchema = new Schema<IUser>(
     email: { type: String, required: true, unique: true, lowercase: true, trim: true, maxlength: 120 },
     passwordHash: { type: String, select: false },
     image: { type: String, maxlength: 500 },
+    phone: { type: String, maxlength: 20 },
     role: { type: String, enum: ["buyer", "seller", "admin"], default: "buyer" },
+    sellerStatus: { type: String, enum: ["pending", "approved", "rejected"] },
+    emailVerified: Date,
     providers: { type: [String], default: [] },
     lastLoginAt: Date,
   },
