@@ -6,8 +6,11 @@ export const ORG = {
   email: "[iletisim@alanadiniz.com]",
   phone: "[+90 256 000 00 00]",
   registryNo: "[Dernek kütük numarası]",
-  site: "https://buharkent-pazari.vercel.app",
+  site: (process.env.NEXT_PUBLIC_SITE_URL || "https://buharkent-pazari.vercel.app").replace(/\/$/, ""),
 };
+
+/** Henüz doldurulmamış yer tutucu mu? ("[...]" ile yazılanlar) */
+export const isPlaceholder = (v: string) => /\[.*\]/.test(v);
 
 export const LEGAL_UPDATED = "5 Kasım 2026";
 

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ArrowUp, Mail, MapPin, Phone } from "lucide-react";
 import { useLenis } from "lenis/react";
-import { legalLinks } from "@/lib/legal";
+import { ORG, isPlaceholder, legalLinks } from "@/lib/legal";
 
 const cols = [
   {
@@ -58,9 +58,13 @@ export default function Footer() {
           <div className="col-span-2 md:col-span-1">
             <h3 className="font-sans text-sm font-semibold text-cream-50/60">İletişim</h3>
             <ul className="mt-3 space-y-2.5 text-[15px] text-cream-50/85">
-              <li className="flex items-start gap-2"><MapPin className="mt-0.5 h-4 w-4 shrink-0" /> Buharkent, Aydın</li>
-              <li className="flex items-center gap-2"><Mail className="h-4 w-4 shrink-0" /> info@alanadiniz.com</li>
-              <li className="flex items-center gap-2"><Phone className="h-4 w-4 shrink-0" /> +90 (256) 000 00 00</li>
+              <li className="flex items-start gap-2"><MapPin className="mt-0.5 h-4 w-4 shrink-0" /> {isPlaceholder(ORG.address) ? "Buharkent, Aydın" : ORG.address}</li>
+              {!isPlaceholder(ORG.email) && (
+                <li><a href={`mailto:${ORG.email}`} className="flex items-center gap-2 hover:underline"><Mail className="h-4 w-4 shrink-0" /> {ORG.email}</a></li>
+              )}
+              {!isPlaceholder(ORG.phone) && (
+                <li><a href={`tel:${ORG.phone.replace(/[^\d+]/g, "")}`} className="flex items-center gap-2 hover:underline"><Phone className="h-4 w-4 shrink-0" /> {ORG.phone}</a></li>
+              )}
             </ul>
           </div>
         </div>

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ClipboardCheck, Flag, MessageSquare, Package, Receipt } from "lucide-react";
+import { ClipboardCheck, Flag, MessageSquare, Package, Receipt, Rocket } from "lucide-react";
 
 const links = [
   { href: "/yonetim/basvurular", label: "Başvurular", icon: ClipboardCheck },
@@ -7,11 +7,12 @@ const links = [
   { href: "/yonetim/siparisler", label: "Siparişler", icon: Receipt },
   { href: "/yonetim/bildirimler", label: "Bildirimler", icon: Flag },
   { href: "/yonetim/yorumlar", label: "Yorumlar", icon: MessageSquare },
+  { href: "/yonetim/yayin", label: "Yayın kontrolü", icon: Rocket },
 ];
 
 export default function AdminNav({ active, counts }: { active: string; counts?: Record<string, number> }) {
   return (
-    <nav className="mx-auto mb-8 flex max-w-6xl flex-wrap gap-2">
+    <nav className="-mx-4 mb-8 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-auto md:max-w-6xl md:flex-wrap md:px-0">
       {links.map(({ href, label, icon: Icon }) => {
         const on = active === href;
         const n = counts?.[href];
@@ -19,7 +20,7 @@ export default function AdminNav({ active, counts }: { active: string; counts?: 
           <Link
             key={href}
             href={href}
-            className={`flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-colors ${
+            className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-5 py-2.5 text-sm font-semibold transition-colors ${
               on ? "bg-olive-900 text-cream-50" : "bg-cream-50 text-olive-900 shadow-soft hover:bg-cream-200"
             }`}
           >

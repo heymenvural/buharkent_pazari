@@ -1,5 +1,6 @@
 "use client";
 
+import ComingSoon from "@/components/shop/ComingSoon";
 import Link from "next/link";
 import { useState } from "react";
 import { ArrowRight } from "lucide-react";
@@ -15,6 +16,16 @@ const tabs: { key: Tag | "all"; label: string }[] = [
 export default function ProductTabs() {
   const [tab, setTab] = useState<Tag | "all">("all");
   const list = (tab === "all" ? catalog : catalog.filter((p) => p.tags.includes(tab))).slice(0, 10);
+
+  if (catalog.length === 0)
+    return (
+      <section>
+        <h2 className="text-2xl text-olive-900 md:text-3xl">Ürünler</h2>
+        <div className="mt-5">
+          <ComingSoon />
+        </div>
+      </section>
+    );
 
   return (
     <section>

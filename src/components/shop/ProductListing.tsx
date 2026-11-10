@@ -1,5 +1,6 @@
 "use client";
 
+import ComingSoon from "@/components/shop/ComingSoon";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -253,7 +254,9 @@ export default function ProductListing({ category, query }: { category?: string;
         </aside>
 
         <div>
-          {results.length === 0 ? (
+          {catalog.length === 0 ? (
+            <ComingSoon />
+          ) : results.length === 0 ? (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}

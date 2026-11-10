@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { ORG } from "@/lib/legal";
 import { Fraunces, Manrope } from "next/font/google";
 import "./globals.css";
 import SmoothScroll from "@/components/providers/SmoothScroll";
@@ -21,6 +22,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL(ORG.site),
   title: {
     default: "Buharkent Pazarı | Buharkent'in Doğal Lezzetleri",
     template: "%s | Buharkent Pazarı",
@@ -33,7 +35,10 @@ export const metadata: Metadata = {
     description: "Buharkent'in doğal lezzetleri, üreticisinden sofranıza.",
     locale: "tr_TR",
     type: "website",
+    siteName: "Buharkent Pazarı",
+    images: [{ url: "/og.jpg", width: 1200, height: 630, alt: "Buharkent Pazarı" }],
   },
+  twitter: { card: "summary_large_image" },
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
