@@ -37,8 +37,8 @@ function OrderCard({ o, admin }: { o: OrderView; admin?: boolean }) {
 
   return (
     <motion.article layout className="rounded-[1.75rem] bg-cream-50 shadow-soft">
-      <button onClick={() => setOpen((x) => !x)} className="flex w-full flex-wrap items-center gap-3 p-5 text-left">
-        <div className="min-w-0 flex-1">
+      <button onClick={() => setOpen((x) => !x)} className="flex w-full flex-wrap items-center gap-x-3 gap-y-2 p-4 text-left sm:p-5">
+        <div className="min-w-0 basis-full sm:basis-0 sm:flex-1">
           <p className="font-mono text-sm font-semibold text-olive-900">
             {o.orderNo} {admin && <span className="font-sans font-normal text-muted">· {p.sellerName}</span>}
           </p>
@@ -46,7 +46,7 @@ function OrderCard({ o, admin }: { o: OrderView; admin?: boolean }) {
             {o.customer.name} · {p.items.map((i) => `${i.qty}× ${i.name}`).join(", ")}
           </p>
         </div>
-        <span className="text-xs text-muted">{new Date(o.createdAt).toLocaleDateString("tr-TR", { day: "numeric", month: "short" })}</span>
+        <span className="mr-auto text-xs text-muted sm:mr-0">{new Date(o.createdAt).toLocaleDateString("tr-TR", { day: "numeric", month: "short" })}</span>
         <span className={`rounded-full px-3 py-1 text-xs font-semibold ${STATUS[p.status].cls}`}>{STATUS[p.status].short}</span>
         <span className="font-semibold">{formatPrice(p.total)}</span>
         <ChevronDown className={`h-5 w-5 text-muted transition-transform ${open ? "rotate-180" : ""}`} />

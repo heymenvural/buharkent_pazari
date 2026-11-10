@@ -126,12 +126,15 @@ export default function CustomerOrder({ order, isNew, token }: { order: OrderVie
                     <span className="text-sm text-muted">{i.qty} × {i.label} · {formatPrice(i.price)}</span>
                   </span>
                   <span className="shrink-0 font-semibold">{formatPrice(i.price * i.qty)}</span>
-                  {p.status === "delivered" &&
-                    (i.reviewed ? (
-                      <span className="w-full text-sm text-muted">✓ Bu ürünü değerlendirdin</span>
-                    ) : (
-                      <ReviewForm orderNo={order.orderNo} token={token} listingId={i.listing} defaultName={shortName} />
-                    ))}
+                  {p.status === "delivered" && (
+                    <div className="w-full">
+                      {i.reviewed ? (
+                        <span className="text-sm text-muted">✓ Bu ürünü değerlendirdin</span>
+                      ) : (
+                        <ReviewForm orderNo={order.orderNo} token={token} listingId={i.listing} defaultName={shortName} />
+                      )}
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>

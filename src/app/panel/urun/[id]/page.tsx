@@ -52,7 +52,7 @@ export default async function ListingPage({ params }: Props) {
     status: listing.status,
     adminNote: listing.adminNote,
     note: listing.note,
-    images: listing.images,
+    images: listing.images ?? [],
     variants: [...listing.variants]
       .sort((a, b) => a.size - b.size)
       .map((v) => {

@@ -20,7 +20,7 @@ export default async function PanelPage() {
   const items: PanelListing[] = listings.map((l) => ({
     id: l._id.toString(),
     productName: products.find((p) => p._id.toString() === l.product.toString())?.name ?? "Ürün",
-    image: l.images[0],
+    image: l.images?.[0],
     status: l.status,
     locked: !!l.locked,
     adminNote: l.adminNote,
@@ -51,21 +51,20 @@ export default async function PanelPage() {
   const now = new Date();
   const yearStart = new Date(now.getFullYear(), 0, 1);
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const [agg] = await Order.aggregate<{ year: number; month: number; count: number }>([
-    { $match: { "parts.seller": user._id, createdAt: { $gte: yearStart } } },
-    { $unwind: "$parts" },
-    { $match: { "parts.seller": user._id, "parts.status": { $ne: "cancelled" } } },
-    {
-      $group: {
-        _id: null,
-        year: { $sum: "$parts.total" },
-        month: { $sum: { $cond: [{ $gte: ["$createdAt", monthStart] }, "$parts.total", 0] } },
-        count: { $sum: 1 },
-      },
-    },
-  ]);
+  const yearOrders = await Order.find({ "parts.seller": user._id, createdAt: trusted({ $gte: yearStart }) })
+    .select("createdAt parts.seller parts.status parts.total")
+    .lean();
+  const me = user._id.toString();
+  const agg = { year: 0, month: 0, count: 0 };
+  for (const o of yearOrders)
+    for (const p of o.parts)
+      if (p.seller.toString() === me && p.status !== "cancelled") {
+        agg.year += p.total;
+        agg.count += 1;
+        if (new Date(o.createdAt) >= monthStart) agg.month += p.total;
+      }
   const limit = profile.taxStatus ? SALES_LIMITS[profile.taxStatus] : undefined;
-  const stats = { year: agg?.year ?? 0, month: agg?.month ?? 0, count: agg?.count ?? 0, limit: limit ? { ...limit } : null };
+  const stats = { year: Math.round(agg.year * 100) / 100, month: Math.round(agg.month * 100) / 100, count: agg.count, limit: limit ? { ...limit } : null };
 
   return (
     <main className="px-4 pb-20 pt-[164px] md:px-8 md:pt-[150px]">

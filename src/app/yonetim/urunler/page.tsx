@@ -40,7 +40,7 @@ export default async function ListingsApprovalPage() {
       seller: sp?.shopName ?? u?.name ?? "Üretici",
       sellerSlug: sp?.slug,
       note: l.note,
-      images: l.images,
+      images: l.images ?? [],
       variants: [...l.variants].sort((a, b) => a.size - b.size).map((v) => ({ label: v.label, price: v.price, oldPrice: v.oldPrice, stock: v.stock })),
       shippingFee: l.shippingFee,
       shipsIn: l.shipsIn,

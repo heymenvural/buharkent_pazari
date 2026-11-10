@@ -116,7 +116,7 @@ async function load(): Promise<CatalogData> {
       reviews: l.reviewCount,
       note: l.note,
       details: l.details.map((d) => [d.k, d.v] as [string, string]),
-      images: l.images,
+      images: l.images ?? [],
     })),
     reviews: reviews
       .filter((r) => listingIds.has(r.listing.toString()))

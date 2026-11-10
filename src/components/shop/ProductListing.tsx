@@ -22,8 +22,8 @@ const ease = [0.76, 0, 0.24, 1] as const;
 type Sort = "onerilen" | "fiyat-artan" | "fiyat-azalan" | "puan" | "yeni";
 const sorts: { key: Sort; label: string }[] = [
   { key: "onerilen", label: "Önerilen" },
-  { key: "fiyat-artan", label: "Fiyat: Düşükten yükseğe" },
-  { key: "fiyat-azalan", label: "Fiyat: Yüksekten düşüğe" },
+  { key: "fiyat-artan", label: "Fiyat: Artan" },
+  { key: "fiyat-azalan", label: "Fiyat: Azalan" },
   { key: "puan", label: "En yüksek puan" },
   { key: "yeni", label: "En yeni" },
 ];
@@ -236,7 +236,7 @@ export default function ProductListing({ category, query }: { category?: string;
             value={sort}
             onChange={(e) => setSort(e.target.value as Sort)}
             aria-label="Sırala"
-            className="flex-1 rounded-full border border-sand-400 bg-cream-50 px-4 py-2.5 text-sm font-semibold text-olive-900 outline-none md:flex-none"
+            className="min-w-0 flex-1 rounded-full border border-sand-400 bg-cream-50 px-4 py-2.5 text-sm font-semibold text-olive-900 outline-none md:flex-none"
           >
             {sorts.map((s) => (
               <option key={s.key} value={s.key}>

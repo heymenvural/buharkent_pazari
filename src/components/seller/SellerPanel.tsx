@@ -213,16 +213,16 @@ function SalesSummary({ stats }: { stats: SalesStats }) {
   const pct = stats.limit ? Math.min(100, (stats.year / stats.limit.limit) * 100) : 0;
   const tone = pct >= 100 ? "bg-terra-600" : pct >= 80 ? "bg-[#e0a84a]" : "bg-olive-700";
   return (
-    <section className="mt-6 grid gap-3 md:grid-cols-[1fr_1fr_2fr]">
-      <div className="rounded-3xl bg-cream-50 p-5 shadow-soft">
+    <section className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-[1fr_1fr_2fr]">
+      <div className="rounded-3xl bg-cream-50 p-4 shadow-soft md:p-5">
         <p className="text-sm text-muted">Bu ay</p>
-        <p className="mt-1 font-display text-3xl text-olive-900">{formatPrice(stats.month)}</p>
+        <p className="mt-1 font-display text-2xl text-olive-900 md:text-3xl">{formatPrice(stats.month)}</p>
       </div>
-      <div className="rounded-3xl bg-cream-50 p-5 shadow-soft">
+      <div className="rounded-3xl bg-cream-50 p-4 shadow-soft md:p-5">
         <p className="text-sm text-muted">Bu yıl · {stats.count} paket</p>
-        <p className="mt-1 font-display text-3xl text-olive-900">{formatPrice(stats.year)}</p>
+        <p className="mt-1 font-display text-2xl text-olive-900 md:text-3xl">{formatPrice(stats.year)}</p>
       </div>
-      <div className="rounded-3xl bg-cream-50 p-5 shadow-soft">
+      <div className="col-span-2 rounded-3xl bg-cream-50 p-4 shadow-soft md:col-span-1 md:p-5">
         {stats.limit ? (
           <>
             <div className="flex items-baseline justify-between gap-2">

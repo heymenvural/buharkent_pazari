@@ -73,3 +73,15 @@ html.lenis, html.lenis body { height: auto; }
     transition-duration: 0.01ms !important;
   }
 }
+/* ---------- Mobil ---------- */
+@media (max-width: 767px) {
+  /* iPhone'da kutuya dokununca sayfanın yakınlaşmasını önler */
+  input, select, textarea { font-size: 16px !important; }
+}
+@media (max-width: 1023px) {
+  /* Ürün sayfasındaki sabit "Ekle" çubuğu alt bilgiyi örtmesin */
+  body:has(.mobile-buybar) footer { padding-bottom: 6.5rem; }
+}
+html { -webkit-text-size-adjust: 100%; }
+body { overflow-x: clip; }
+button, a { -webkit-tap-highlight-color: transparent; }

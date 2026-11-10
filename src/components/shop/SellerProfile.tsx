@@ -46,7 +46,7 @@ export default function SellerProfile({ slug }: { slug: string }) {
       {/* Profil */}
       <div className="px-2 md:px-8">
         <motion.span
-          className={`-mt-14 grid h-28 w-28 place-items-center overflow-hidden rounded-full border-4 border-cream-100 bg-gradient-to-br font-display text-4xl text-cream-50 shadow-soft ${sellerGradient(seller.type)}`}
+          className={`relative z-10 -mt-14 grid h-28 w-28 place-items-center overflow-hidden rounded-full border-4 border-cream-100 bg-gradient-to-br font-display text-4xl text-cream-50 shadow-soft ${sellerGradient(seller.type)}`}
           initial={{ scale: 0.5, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.3, type: "spring", stiffness: 200, damping: 15 }}

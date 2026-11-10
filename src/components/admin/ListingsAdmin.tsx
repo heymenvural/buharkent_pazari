@@ -44,7 +44,7 @@ function Card({ l, onError }: { l: AdminListing; onError: (e: string) => void })
         <div className="relative aspect-square overflow-hidden rounded-2xl bg-sand-300">
           {l.images[big] && <Image src={l.images[big]} alt="" fill sizes="280px" className="object-cover" />}
         </div>
-        {l.images.length > 1 && (
+        {(l.images?.length ?? 0) > 1 && (
           <div className="mt-2 grid grid-cols-6 gap-1.5">
             {l.images.map((src, i) => (
               <button key={src} onClick={() => setBig(i)} className={`relative aspect-square overflow-hidden rounded-lg ${big === i ? "ring-2 ring-olive-700" : "opacity-70"}`}>

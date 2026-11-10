@@ -212,7 +212,7 @@ export default function ProductDetail({ slug, initialSeller }: { slug: string; i
                   <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full border-2 ${active ? "border-olive-700" : "border-sand-400"}`}>
                     {active && <span className="h-2.5 w-2.5 rounded-full bg-olive-700" />}
                   </span>
-                  <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-full bg-gradient-to-br font-display text-cream-50 ${sellerGradient(l.seller.type)}`}>
+                  <span className={`hidden h-11 w-11 shrink-0 place-items-center rounded-full bg-gradient-to-br font-display text-cream-50 sm:grid ${sellerGradient(l.seller.type)}`}>
                     {initials(l.seller.name)}
                   </span>
                   <span className="min-w-0 flex-1">
@@ -221,7 +221,7 @@ export default function ProductDetail({ slug, initialSeller }: { slug: string; i
                       {l.seller.verified && <BadgeCheck className="h-4 w-4 shrink-0 text-olive-700" />}
                     </span>
                     <span className="mt-0.5 flex flex-wrap items-center gap-x-3 text-xs text-muted">
-                      <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {l.seller.village}</span>
+                      <span className="flex items-center gap-1"><MapPin className="h-3 w-3 shrink-0" /> {l.seller.village.split(",")[0]}</span>
                       <span className="flex items-center gap-1"><Star className="h-3 w-3 fill-terra-500 text-terra-500" /> {l.offer.rating.toFixed(1)}</span>
                     </span>
                   </span>
@@ -387,7 +387,7 @@ export default function ProductDetail({ slug, initialSeller }: { slug: string; i
 
       {/* Mobil sabit bar */}
       {current && (
-        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-sand-300 bg-cream-50/95 p-3 backdrop-blur-md lg:hidden">
+        <div className="mobile-buybar fixed inset-x-0 bottom-0 z-30 border-t border-sand-300 bg-cream-50/95 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-md lg:hidden">
           <p className="truncate px-1 text-xs text-muted">
             {current.seller.name} · {label}
           </p>

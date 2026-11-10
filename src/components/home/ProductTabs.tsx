@@ -20,12 +20,12 @@ export default function ProductTabs() {
     <section>
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <h2 className="text-2xl text-olive-900 md:text-3xl">Ürünler</h2>
-        <div className="flex gap-2">
+        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] md:mx-0 md:px-0">
           {tabs.map((t) => (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`rounded-full px-4 py-2 text-[15px] font-semibold transition-colors ${
+              className={`shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-[15px] font-semibold transition-colors ${
                 tab === t.key ? "bg-olive-700 text-cream-50" : "bg-cream-50 text-olive-900 ring-1 ring-sand-300 hover:ring-olive-500"
               }`}
             >
