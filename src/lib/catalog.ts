@@ -23,6 +23,7 @@ export type Seller = {
   cover?: string;
   freeShippingOver?: number;
   cod?: boolean;
+  whatsapp?: string; // sadece üretici izin verdiyse
 };
 
 export type Category = { slug: string; name: string; short: string; icon: LucideIcon; bg: string };

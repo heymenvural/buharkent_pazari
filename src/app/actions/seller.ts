@@ -206,6 +206,7 @@ export async function updateShop(input: unknown): Promise<Result> {
   p.cover = d.cover || undefined;
   p.freeShippingOver = d.freeShippingOver && d.freeShippingOver > 0 ? Math.round(d.freeShippingOver) : undefined;
   p.codEnabled = d.codEnabled;
+  p.askEnabled = d.askEnabled;
   await p.save();
 
   updateTag("catalog");

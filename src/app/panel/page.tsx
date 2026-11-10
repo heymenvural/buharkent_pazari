@@ -6,6 +6,7 @@ import { Listing } from "@/models/Listing";
 import { Product } from "@/models/Product";
 import { Order } from "@/models/Order";
 import { toOrderView } from "@/lib/data/orders.server";
+import { SALES_LIMITS } from "@/lib/compliance";
 import SellerPanel, { type PanelListing, type PanelShop } from "@/components/seller/SellerPanel";
 
 export const metadata: Metadata = { title: "Üretici paneli", robots: { index: false } };
@@ -38,16 +39,38 @@ export default async function PanelPage() {
     cover: profile.cover ?? "",
     freeShippingOver: profile.freeShippingOver ? String(profile.freeShippingOver) : "",
     cod: !!profile.codEnabled,
+    ask: !!profile.askEnabled,
+    phone: profile.phone,
   };
 
   // Siparişlerde üretici sadece kendi paketini görür
   const orderDocs = await Order.find({ "parts.seller": user._id }).sort({ createdAt: -1 }).limit(200).lean();
   const orders = orderDocs.map((o) => toOrderView(o, { onlySeller: user._id.toString() }));
 
+  // Bu yılın satışları (iptaller hariç, kargo dahil): vergi muafiyeti sınırını takip için
+  const now = new Date();
+  const yearStart = new Date(now.getFullYear(), 0, 1);
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const [agg] = await Order.aggregate<{ year: number; month: number; count: number }>([
+    { $match: { "parts.seller": user._id, createdAt: { $gte: yearStart } } },
+    { $unwind: "$parts" },
+    { $match: { "parts.seller": user._id, "parts.status": { $ne: "cancelled" } } },
+    {
+      $group: {
+        _id: null,
+        year: { $sum: "$parts.total" },
+        month: { $sum: { $cond: [{ $gte: ["$createdAt", monthStart] }, "$parts.total", 0] } },
+        count: { $sum: 1 },
+      },
+    },
+  ]);
+  const limit = profile.taxStatus ? SALES_LIMITS[profile.taxStatus] : undefined;
+  const stats = { year: agg?.year ?? 0, month: agg?.month ?? 0, count: agg?.count ?? 0, limit: limit ? { ...limit } : null };
+
   return (
     <main className="px-4 pb-20 pt-[164px] md:px-8 md:pt-[150px]">
       <Suspense>
-        <SellerPanel listings={items} shop={shop} orders={orders} />
+        <SellerPanel listings={items} shop={shop} orders={orders} stats={stats} />
       </Suspense>
     </main>
   );

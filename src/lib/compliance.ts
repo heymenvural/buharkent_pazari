@@ -233,3 +233,8 @@ export function requirementsFor(typeKeys: string[], tax?: TaxStatus) {
     docs: [...map.entries()].map(([k, forList]) => ({ doc: DOCS[k], for: forList })),
   };
 }
+/** Esnaf muafiyetinde yıllık internet satış sınırları (2026). Her yıl güncellenmeli. */
+export const SALES_LIMITS: Partial<Record<TaxStatus, { limit: number; year: number; text: string }>> = {
+  muaf910: { limit: 1_900_000, year: 2026, text: "Sadece internetten satış (GVK 9/10) yıllık sınırı" },
+  muaf96: { limit: 396_360, year: 2026, text: "Pazar + internet satışında (GVK 9/6) internet satış sınırı" },
+};

@@ -5,6 +5,7 @@ import { auth } from "@/auth";
 import { connectDB } from "@/lib/db";
 import { toOrderView } from "@/lib/data/orders.server";
 import { Order } from "@/models/Order";
+import { Review } from "@/models/Review";
 import CustomerOrder from "@/components/orders/CustomerOrder";
 
 export const metadata: Metadata = { title: "Sipariş", robots: { index: false } };
@@ -29,9 +30,11 @@ export default async function OrderPage({ params, searchParams }: Props) {
   const allowed = (typeof t === "string" && sameToken(t, order.token)) || owner || session?.user?.role === "admin";
   if (!allowed) notFound();
 
+  const reviewed = new Set((await Review.find({ order: order._id }).select("listing").lean()).map((r) => r.listing.toString()));
+
   return (
     <main className="px-4 pb-20 pt-[164px] md:px-8 md:pt-[150px]">
-      <CustomerOrder order={toOrderView(order, { showIban: true })} isNew={yeni === "1"} />
+      <CustomerOrder order={toOrderView(order, { showIban: true, reviewed })} isNew={yeni === "1"} token={typeof t === "string" && sameToken(t, order.token) ? t : undefined} />
     </main>
   );
 }

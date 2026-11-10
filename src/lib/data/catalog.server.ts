@@ -7,6 +7,7 @@ import { Review } from "@/models/Review";
 import { User, type IUser } from "@/models/User";
 import { SellerDocument } from "@/models/SellerDocument";
 import type { DocKey } from "@/lib/compliance";
+import { toWaNumber } from "@/lib/whatsapp";
 import { hydrateCatalog, type CatalogData, type SellerType } from "@/lib/catalog";
 
 const empty: CatalogData = { products: [], sellers: [], offers: [], reviews: [] };
@@ -92,6 +93,7 @@ async function load(): Promise<CatalogData> {
         ...(p.cover ? { cover: p.cover } : {}),
         ...(p.freeShippingOver ? { freeShippingOver: p.freeShippingOver } : {}),
         ...(p.codEnabled ? { cod: true } : {}),
+        ...(p.askEnabled && toWaNumber(p.phone) ? { whatsapp: toWaNumber(p.phone)! } : {}),
         badges: docs.filter((d) => d.user.toString() === uid).map((d) => BADGE[d.docKey]).filter((b): b is string => !!b),
       };
     }),

@@ -9,7 +9,7 @@ export type OrderPartView = {
   sellerPhone?: string;
   iban?: string;
   ibanName?: string;
-  items: { name: string; slug: string; label: string; price: number; qty: number; image?: string }[];
+  items: { listing: string; name: string; slug: string; label: string; price: number; qty: number; image?: string; reviewed?: boolean }[];
   subtotal: number;
   shipping: number;
   total: number;
@@ -34,7 +34,7 @@ export type OrderView = {
   parts: OrderPartView[];
 };
 
-export function toOrderView(o: IOrder, opts: { onlySeller?: string; showIban?: boolean } = {}): OrderView {
+export function toOrderView(o: IOrder, opts: { onlySeller?: string; showIban?: boolean; reviewed?: Set<string> } = {}): OrderView {
   const parts = o.parts.filter((p) => !opts.onlySeller || p.seller.toString() === opts.onlySeller);
   return {
     id: o._id.toString(),
@@ -54,7 +54,7 @@ export function toOrderView(o: IOrder, opts: { onlySeller?: string; showIban?: b
       sellerPhone: p.sellerPhone,
       // IBAN sadece havale bekleyen siparişte müşteriye gösterilir
       ...(opts.showIban && o.payment === "havale" && p.status === "pending_payment" ? { iban: p.iban, ibanName: p.ibanName } : {}),
-      items: p.items.map((i) => ({ name: i.name, slug: i.slug, label: i.label, price: i.price, qty: i.qty, image: i.image })),
+      items: p.items.map((i) => ({ listing: i.listing.toString(), name: i.name, slug: i.slug, label: i.label, price: i.price, qty: i.qty, image: i.image, reviewed: opts.reviewed?.has(i.listing.toString()) })),
       subtotal: p.subtotal,
       shipping: p.shipping,
       total: p.total,

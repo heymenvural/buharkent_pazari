@@ -9,6 +9,7 @@ import { categories, formatPrice, initials, type Seller, type Variant } from "@/
 import { toCartItem } from "@/lib/cartLine";
 import { useCart } from "@/store/cart";
 import type { StallInfo, StallItem } from "./layout";
+import AskSeller from "@/components/shop/AskSeller";
 
 const ease = [0.76, 0, 0.24, 1] as const;
 
@@ -142,7 +143,8 @@ export default function StallSheet({ stall, onClose }: { stall: StallInfo | null
                   ))}
                   {stall.items.length === 0 && <p className="rounded-2xl bg-cream-50 p-5 text-center text-muted">Bu üretici tezgâhını henüz kuruyor.</p>}
                 </div>
-                <Link href={`/uretici/${stall.seller.slug}`} className="mt-4 flex min-h-[48px] items-center justify-center gap-2 rounded-full border-2 border-olive-700 font-semibold text-olive-700 hover:bg-olive-700/5">
+                <AskSeller number={stall.seller.whatsapp} sellerName={stall.seller.name} className="mt-4 w-full" />
+                <Link href={`/uretici/${stall.seller.slug}`} className="mt-3 flex min-h-[48px] items-center justify-center gap-2 rounded-full border-2 border-olive-700 font-semibold text-olive-700 hover:bg-olive-700/5">
                   <Store className="h-4 w-4" /> Üreticinin hikâyesi ve mağazası
                 </Link>
               </>

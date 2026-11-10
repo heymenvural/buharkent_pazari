@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import AskSeller from "@/components/shop/AskSeller";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { BadgeCheck, CalendarDays, ChevronRight, MapPin, Package, Quote, ShieldCheck, Sprout, Star, Truck } from "lucide-react";
@@ -81,6 +82,7 @@ export default function SellerProfile({ slug }: { slug: string }) {
               <span className="flex items-center gap-1.5 font-semibold text-olive-700"><Truck className="h-4 w-4" /> {formatPrice(seller.freeShippingOver)} üzeri kargo ücretsiz</span>
             )}
           </div>
+          <AskSeller number={seller.whatsapp} sellerName={seller.name} className="mt-5" />
         </motion.div>
       </div>
 

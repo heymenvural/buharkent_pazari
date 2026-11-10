@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { ClipboardCheck, Flag, Package, Receipt } from "lucide-react";
+import { ClipboardCheck, Flag, MessageSquare, Package, Receipt } from "lucide-react";
 
 const links = [
   { href: "/yonetim/basvurular", label: "Başvurular", icon: ClipboardCheck },
   { href: "/yonetim/urunler", label: "Ürün onayı", icon: Package },
   { href: "/yonetim/siparisler", label: "Siparişler", icon: Receipt },
   { href: "/yonetim/bildirimler", label: "Bildirimler", icon: Flag },
+  { href: "/yonetim/yorumlar", label: "Yorumlar", icon: MessageSquare },
 ];
 
 export default function AdminNav({ active, counts }: { active: string; counts?: Record<string, number> }) {

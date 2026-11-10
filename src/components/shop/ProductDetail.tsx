@@ -14,6 +14,7 @@ import { flyToCart } from "@/lib/flyToCart";
 import { toCartItem } from "@/lib/cartLine";
 import ProductCard from "@/components/shop/ProductCard";
 import ReportButton from "@/components/shop/ReportButton";
+import AskSeller from "@/components/shop/AskSeller";
 import { unitPrice } from "@/lib/units";
 import {
   catalog, discountPct, formatPrice, getCategory, getProduct, getSeller, initials, linesFor,
@@ -349,13 +350,16 @@ export default function ProductDetail({ slug, initialSeller }: { slug: string; i
                   </div>
                   <p className="mt-5 font-display text-lg italic leading-snug text-sand-300">&ldquo;{current.seller.tagline}&rdquo;</p>
                   <p className="mt-3 line-clamp-4 text-sm leading-relaxed text-cream-50/70">{current.seller.story[0]}</p>
-                  <Link
-                    href={`/uretici/${current.seller.slug}`}
-                    className="group mt-6 inline-flex items-center gap-2 rounded-full bg-cream-50 px-5 py-3 text-sm font-semibold text-olive-900 transition-colors hover:bg-sand-300"
-                  >
-                    Hikâyesini ve mağazasını gör
-                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                  </Link>
+                  <div className="mt-6 flex flex-wrap gap-2">
+                    <Link
+                      href={`/uretici/${current.seller.slug}`}
+                      className="group inline-flex items-center gap-2 rounded-full bg-cream-50 px-5 py-3 text-sm font-semibold text-olive-900 transition-colors hover:bg-sand-300"
+                    >
+                      Hikâyesini ve mağazasını gör
+                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    </Link>
+                    <AskSeller number={current.seller.whatsapp} sellerName={current.seller.name} productName={product.name} />
+                  </div>
                 </div>
               </section>
             </div>

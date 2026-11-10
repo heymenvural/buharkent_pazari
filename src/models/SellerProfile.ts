@@ -30,6 +30,7 @@ export interface ISellerProfile {
   cover?: string;
   freeShippingOver?: number;
   codEnabled: boolean; // kapıda ödeme kabul ediyor mu
+  askEnabled: boolean; // müşteriler WhatsApp'tan soru sorabilir mi
   demo: boolean;
   reviewedAt?: Date;
   reviewedBy?: Types.ObjectId;
@@ -64,6 +65,7 @@ const SellerProfileSchema = new Schema<ISellerProfile>(
     cover: { type: String, maxlength: 300 },
     freeShippingOver: { type: Number, min: 0, max: 100_000 },
     codEnabled: { type: Boolean, default: false },
+    askEnabled: { type: Boolean, default: false },
     demo: { type: Boolean, default: false },
     reviewedAt: Date,
     reviewedBy: { type: Schema.Types.ObjectId, ref: "User" },

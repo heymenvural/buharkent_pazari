@@ -9,6 +9,7 @@ import { formatPrice } from "@/lib/catalog";
 import { PAYMENT_DAYS, STATUS, trackingUrl } from "@/lib/orders";
 import type { OrderView } from "@/lib/data/orders.server";
 import OrderTimeline from "./OrderTimeline";
+import ReviewForm from "./ReviewForm";
 
 const ease = [0.76, 0, 0.24, 1] as const;
 
@@ -36,7 +37,9 @@ function CopyField({ label, value, display, mono }: { label: string; value: stri
   );
 }
 
-export default function CustomerOrder({ order, isNew }: { order: OrderView; isNew: boolean }) {
+export default function CustomerOrder({ order, isNew, token }: { order: OrderView; isNew: boolean; token?: string }) {
+  const firstName = order.customer.name.split(" ")[0] ?? "";
+  const shortName = `${firstName} ${order.customer.name.split(" ").slice(1).map((w) => w[0] + ".").join(" ")}`.trim();
   const havaleParts = order.parts.filter((p) => p.iban);
 
   return (
@@ -114,7 +117,7 @@ export default function CustomerOrder({ order, isNew }: { order: OrderView; isNe
 
             <ul className="mt-5 divide-y divide-sand-300">
               {p.items.map((i) => (
-                <li key={`${i.slug}-${i.label}`} className="flex items-center gap-3 py-3">
+                <li key={`${i.slug}-${i.label}`} className="flex flex-wrap items-center gap-3 py-3">
                   <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-sand-300">
                     {i.image && <Image src={i.image} alt="" fill sizes="56px" className="object-cover" />}
                   </span>
@@ -123,6 +126,12 @@ export default function CustomerOrder({ order, isNew }: { order: OrderView; isNe
                     <span className="text-sm text-muted">{i.qty} × {i.label} · {formatPrice(i.price)}</span>
                   </span>
                   <span className="shrink-0 font-semibold">{formatPrice(i.price * i.qty)}</span>
+                  {p.status === "delivered" &&
+                    (i.reviewed ? (
+                      <span className="w-full text-sm text-muted">✓ Bu ürünü değerlendirdin</span>
+                    ) : (
+                      <ReviewForm orderNo={order.orderNo} token={token} listingId={i.listing} defaultName={shortName} />
+                    ))}
                 </li>
               ))}
             </ul>

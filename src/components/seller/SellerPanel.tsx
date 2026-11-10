@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
 import { motion } from "framer-motion";
 import {
-  Banknote, CheckCircle2, Clock, ExternalLink, FileCheck2, Loader2, LogOut, Package, Pencil, Plus, Receipt, Save, Store, Truck, XCircle,
+  Banknote, CheckCircle2, MessageCircle, Clock, ExternalLink, FileCheck2, Loader2, LogOut, Package, Pencil, Plus, Receipt, Save, Store, Truck, XCircle,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { setListingActive, updateShop } from "@/app/actions/seller";
@@ -37,6 +37,8 @@ export type PanelShop = {
   cover: string;
   freeShippingOver: string;
   cod: boolean;
+  ask: boolean;
+  phone: string;
 };
 
 const statusChip = {
@@ -123,6 +125,7 @@ function ShopForm({ shop }: { shop: PanelShop }) {
         cover: f.cover,
         freeShippingOver: f.freeShippingOver.trim() && Number.isFinite(n) ? n : null,
         codEnabled: f.cod,
+        askEnabled: f.ask,
       });
       if (!res.ok) return setErrors(res.errors ?? { form: "Bir sorun oluştu." });
       setSaved(true);
@@ -183,6 +186,16 @@ function ShopForm({ shop }: { shop: PanelShop }) {
         </label>
       </section>
 
+      <section className="rounded-[2rem] bg-cream-50 p-5 shadow-soft md:p-7">
+        <h2 className="flex items-center gap-2 text-xl font-semibold text-olive-900"><MessageCircle className="h-5 w-5" /> Üreticiye sor</h2>
+        <label className="mt-3 flex cursor-pointer items-start gap-3">
+          <input type="checkbox" checked={f.ask} onChange={(e) => set("ask", e.target.checked)} className="mt-1 h-6 w-6 shrink-0 accent-[#4a5627]" />
+          <span className="text-ink/80">
+            <b className="text-ink">Müşteriler bana WhatsApp&apos;tan soru sorabilsin.</b> Ürünlerinde ve mağazanda &quot;Üreticiye sor&quot; butonu görünür. Bu buton {f.phone} numaranı müşteriye gösterir.
+          </span>
+        </label>
+      </section>
+
       {errors.form && <p className="rounded-2xl bg-terra-500/10 px-4 py-3 font-medium text-terra-600">{errors.form}</p>}
       <button onClick={save} disabled={pending} className="flex min-h-[56px] w-full items-center justify-center gap-2 rounded-full bg-olive-700 text-lg font-semibold text-cream-50 hover:bg-olive-900 disabled:opacity-60">
         {pending ? <Loader2 className="h-5 w-5 animate-spin" /> : saved ? <CheckCircle2 className="h-5 w-5" /> : <Save className="h-5 w-5" />} {saved ? "Kaydedildi" : "Kaydet"}
@@ -193,7 +206,55 @@ function ShopForm({ shop }: { shop: PanelShop }) {
 
 type Tab = "siparisler" | "urunler" | "magaza";
 
-export default function SellerPanel({ listings, shop, orders }: { listings: PanelListing[]; shop: PanelShop; orders: OrderView[] }) {
+export type SalesStats = { year: number; month: number; count: number; limit: { limit: number; year: number; text: string } | null };
+
+/** Bu yılın satışları ve vergi muafiyeti sınırına ne kadar yaklaşıldığı */
+function SalesSummary({ stats }: { stats: SalesStats }) {
+  const pct = stats.limit ? Math.min(100, (stats.year / stats.limit.limit) * 100) : 0;
+  const tone = pct >= 100 ? "bg-terra-600" : pct >= 80 ? "bg-[#e0a84a]" : "bg-olive-700";
+  return (
+    <section className="mt-6 grid gap-3 md:grid-cols-[1fr_1fr_2fr]">
+      <div className="rounded-3xl bg-cream-50 p-5 shadow-soft">
+        <p className="text-sm text-muted">Bu ay</p>
+        <p className="mt-1 font-display text-3xl text-olive-900">{formatPrice(stats.month)}</p>
+      </div>
+      <div className="rounded-3xl bg-cream-50 p-5 shadow-soft">
+        <p className="text-sm text-muted">Bu yıl · {stats.count} paket</p>
+        <p className="mt-1 font-display text-3xl text-olive-900">{formatPrice(stats.year)}</p>
+      </div>
+      <div className="rounded-3xl bg-cream-50 p-5 shadow-soft">
+        {stats.limit ? (
+          <>
+            <div className="flex items-baseline justify-between gap-2">
+              <p className="text-sm text-muted">{stats.limit.text}</p>
+              <p className="shrink-0 text-sm font-semibold text-ink">%{Math.floor(pct)}</p>
+            </div>
+            <div className="mt-3 h-3 overflow-hidden rounded-full bg-sand-300">
+              <motion.div className={`h-full rounded-full ${tone}`} initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 1 }} />
+            </div>
+            <p className="mt-2 text-sm text-muted">
+              {formatPrice(stats.year)} / {formatPrice(stats.limit.limit)} ({stats.limit.year})
+            </p>
+            {pct >= 80 && (
+              <p className={`mt-2 rounded-2xl p-3 text-sm ${pct >= 100 ? "bg-terra-500/10 text-terra-600" : "bg-[#e0a84a]/15 text-[#7a4f10]"}`}>
+                {pct >= 100
+                  ? "Yıllık muafiyet sınırını aştın. Vergi durumunu güncellemen gerekebilir; mali müşavirine ya da vergi dairesine danış."
+                  : "Muafiyet sınırına yaklaşıyorsun. Sınırı aşarsan vergi durumunun değişmesi gerekebilir."}
+              </p>
+            )}
+          </>
+        ) : (
+          <>
+            <p className="text-sm text-muted">Vergi sınırı</p>
+            <p className="mt-1 text-sm leading-relaxed text-ink/80">Seçtiğin vergi durumunda platformun takip ettiği bir yıllık satış sınırı yok. Tutarlar kargo dahil, iptaller hariçtir.</p>
+          </>
+        )}
+      </div>
+    </section>
+  );
+}
+
+export default function SellerPanel({ listings, shop, orders, stats }: { listings: PanelListing[]; shop: PanelShop; orders: OrderView[]; stats: SalesStats }) {
   const params = useSearchParams();
   const openOrders = orders.filter((o) => ["pending_payment", "preparing", "shipped"].includes(o.parts[0].status)).length;
   const [tab, setTab] = useState<Tab>(() => {
@@ -231,6 +292,8 @@ export default function SellerPanel({ listings, shop, orders }: { listings: Pane
           {savedStatus === "pending" ? "Ürünün kaydedildi. Ekibimiz kontrol edip onayladıktan sonra sitede görünecek." : "Ürünün kaydedildi ve sitede yayında (en geç 1 dakika içinde görünür)."}
         </motion.p>
       )}
+
+      <SalesSummary stats={stats} />
 
       <div className="mt-8 flex flex-wrap gap-2">
         {[
