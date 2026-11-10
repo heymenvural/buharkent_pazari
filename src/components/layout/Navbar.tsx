@@ -4,24 +4,18 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
-import { AnimatePresence, motion, useMotionValueEvent, useScroll } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, Footprints, LayoutGrid, Menu, Search, ShoppingBag, User, X } from "lucide-react";
 import { useLenis } from "lenis/react";
 import { useCart, selectCount } from "@/store/cart";
 import { useUI } from "@/store/ui";
 import { categories } from "@/lib/catalog";
-import { introDelay } from "@/lib/intro";
 
-const ease = [0.76, 0, 0.24, 1] as const;
-
-const messages = [
-  "Buharkent'in kadın girişimcileri ve genç çiftçilerinden doğrudan sofranıza",
-  "Lezzet kutularında ücretsiz kargo",
-  "Yeni hasat zeytinyağında %10'a varan indirim",
-];
+const ANNOUNCEMENT = "Komisyon yok · Ödemeni doğrudan üreticiye yaparsın";
 
 const extraLinks = [
-  { href: "/canli-pazar", label: "Canlı Pazar (3D)" },
+  { href: "/urunler", label: "Tüm ürünler" },
+  { href: "/canli-pazar", label: "Canlı Pazar" },
   { href: "/ureticiler", label: "Üreticiler" },
   { href: "/hakkimizda", label: "Hakkımızda" },
   { href: "/uretici-ol", label: "Üretici Ol" },
@@ -64,13 +58,9 @@ const iconBtn =
 export default function Navbar() {
   const pathname = usePathname();
   const { data: session, status } = useSession();
-  const [delay] = useState(() => (pathname === "/" ? introDelay(1.4) : 0));
-  const { scrollY } = useScroll();
-  const [hidden, setHidden] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const [catOpen, setCatOpen] = useState(false);
-  const [msg, setMsg] = useState(0);
   const [mounted, setMounted] = useState(false);
   const lenis = useLenis();
   const count = useCart(selectCount);
@@ -85,13 +75,9 @@ export default function Navbar() {
 
   useEffect(() => {
     setMounted(true);
-    const show = () => setHidden(false);
-    window.addEventListener("cart:fly", show);
-    const id = setInterval(() => setMsg((m) => (m + 1) % messages.length), 4500);
-    return () => {
-      window.removeEventListener("cart:fly", show);
-      clearInterval(id);
-    };
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   useEffect(() => {
@@ -99,12 +85,6 @@ export default function Navbar() {
     setCatOpen(false);
     lenis?.start();
   }, [pathname, lenis]);
-
-  useMotionValueEvent(scrollY, "change", (y) => {
-    const prev = scrollY.getPrevious() ?? 0;
-    setScrolled(y > 20);
-    setHidden(y > prev && y > 160 && !open);
-  });
 
   const toggle = () => {
     const next = !open;
@@ -123,38 +103,14 @@ export default function Navbar() {
 
   return (
     <>
-      <motion.div
-        className="fixed inset-x-0 top-0 z-50"
-        initial={{ opacity: 0, y: -30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay, duration: 0.7, ease }}
-      >
-        <motion.header
-          animate={{ y: hidden ? "-100%" : "0%" }}
-          transition={{ duration: 0.45, ease }}
-          className={`border-b border-sand-300/70 bg-cream-50/90 backdrop-blur-md transition-shadow ${scrolled ? "shadow-soft" : ""}`}
-        >
-          <div className="relative h-8 overflow-hidden bg-olive-900 text-cream-50">
-            <AnimatePresence mode="wait">
-              <motion.p
-                key={msg}
-                initial={{ y: "100%" }}
-                animate={{ y: 0 }}
-                exit={{ y: "-100%" }}
-                transition={{ duration: 0.4 }}
-                className="absolute inset-0 grid place-items-center truncate px-4 text-center text-[11px] font-medium tracking-wide md:text-xs"
-              >
-                {messages[msg]}
-              </motion.p>
-            </AnimatePresence>
-          </div>
+      <div className="fixed inset-x-0 top-0 z-50">
+        <header className={`border-b border-sand-300 bg-cream-50 transition-shadow ${scrolled ? "shadow-soft" : ""}`}>
+          <p className="truncate bg-olive-900 px-4 py-1.5 text-center text-[13px] font-medium text-cream-50">{ANNOUNCEMENT}</p>
 
-          <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 md:h-20 md:gap-6 md:px-8">
+          <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 md:h-[72px] md:gap-5 md:px-8">
             <Link href="/" onClick={close} className="flex shrink-0 items-center gap-2">
               <span className="grid h-9 w-9 place-items-center rounded-full bg-olive-700 font-display text-lg text-cream-50">B</span>
-              <span className="font-display text-xl text-olive-900">
-                Buharkent<span className="text-terra-500">.</span>
-              </span>
+              <span className="font-display text-xl text-olive-900">Buharkent Pazarı</span>
             </Link>
 
             <div className="relative hidden lg:block" onMouseEnter={() => setCatOpen(true)} onMouseLeave={() => setCatOpen(false)}>
@@ -166,21 +122,21 @@ export default function Navbar() {
               <AnimatePresence>
                 {catOpen && (
                   <motion.div
-                    className="absolute left-0 top-full pt-3"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    transition={{ duration: 0.25 }}
+                    className="absolute left-0 top-full pt-2"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.15 }}
                   >
-                    <div className="grid w-[520px] grid-cols-2 gap-1 rounded-3xl border border-sand-300 bg-cream-50 p-3 shadow-2xl">
+                    <div className="grid w-[480px] grid-cols-2 gap-1 rounded-2xl border border-sand-300 bg-cream-50 p-2 shadow-soft">
                       {categories.map((c) => {
                         const Icon = c.icon;
                         return (
-                          <Link key={c.slug} href={`/kategori/${c.slug}`} className="group flex items-center gap-3 rounded-2xl p-3 transition-colors hover:bg-cream-200">
-                            <span className={`grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br ${c.bg}`}>
-                              <Icon className={`h-5 w-5 transition-transform group-hover:scale-110 ${c.slug === "sut-yumurta" ? "text-olive-900" : "text-cream-50"}`} />
+                          <Link key={c.slug} href={`/kategori/${c.slug}`} className="flex items-center gap-3 rounded-xl p-2.5 transition-colors hover:bg-cream-200">
+                            <span className="grid h-9 w-9 place-items-center rounded-full bg-cream-200 text-olive-700">
+                              <Icon className="h-5 w-5" />
                             </span>
-                            <span className="text-sm font-semibold text-ink">{c.name}</span>
+                            <span className="text-[15px] font-semibold text-ink">{c.name}</span>
                           </Link>
                         );
                       })}
@@ -192,12 +148,8 @@ export default function Navbar() {
 
             <Link
               href="/canli-pazar"
-              className="hidden shrink-0 items-center gap-2 rounded-full bg-terra-500/10 px-4 py-2.5 text-sm font-semibold text-terra-600 transition-colors hover:bg-terra-500/20 lg:flex"
+              className="hidden shrink-0 items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold text-olive-900 transition-colors hover:bg-sand-300/60 lg:flex"
             >
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-terra-500 opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-terra-500" />
-              </span>
               <Footprints className="h-4 w-4" />
               Canlı Pazar
             </Link>
@@ -238,47 +190,43 @@ export default function Navbar() {
           <div className="px-4 pb-3 md:hidden">
             <SearchBox onDone={close} />
           </div>
-        </motion.header>
-      </motion.div>
+        </header>
+      </div>
 
       <AnimatePresence>
         {open && (
           <motion.div
             data-lenis-prevent
-            className="fixed inset-0 z-40 overflow-y-auto bg-cream-100 px-4 pb-10 pt-40 lg:hidden"
-            initial={{ clipPath: "circle(0% at 100% 0%)" }}
-            animate={{ clipPath: "circle(150% at 100% 0%)" }}
-            exit={{ clipPath: "circle(0% at 100% 0%)" }}
-            transition={{ duration: 0.7, ease }}
+            className="fixed inset-0 z-40 overflow-y-auto bg-cream-100 px-4 pb-10 pt-[150px] lg:hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
           >
-            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted">Kategoriler</p>
+            <p className="text-sm font-semibold text-muted">Kategoriler</p>
             <div className="mt-3 grid grid-cols-2 gap-2">
-              {categories.map((c, i) => {
+              {categories.map((c) => {
                 const Icon = c.icon;
                 return (
-                  <motion.div key={c.slug} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 + i * 0.04 }}>
-                    <Link href={`/kategori/${c.slug}`} onClick={close} className="flex items-center gap-3 rounded-2xl bg-cream-50 p-3">
-                      <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br ${c.bg}`}>
-                        <Icon className={`h-5 w-5 ${c.slug === "sut-yumurta" ? "text-olive-900" : "text-cream-50"}`} />
-                      </span>
-                      <span className="text-sm font-semibold text-ink">{c.short}</span>
-                    </Link>
-                  </motion.div>
+                  <Link key={c.slug} href={`/kategori/${c.slug}`} onClick={close} className="flex items-center gap-3 rounded-2xl border border-sand-300 bg-cream-50 p-3">
+                    <Icon className="h-5 w-5 shrink-0 text-olive-700" />
+                    <span className="text-[15px] font-semibold text-ink">{c.short}</span>
+                  </Link>
                 );
               })}
             </div>
 
-            <ul className="mt-8 space-y-1">
-              {extraLinks.map((l, i) => (
-                <motion.li key={l.href} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.45 + i * 0.05 }}>
-                  <Link href={l.href} onClick={close} className="block py-2 font-display text-3xl text-olive-900">
+            <ul className="mt-6 divide-y divide-sand-300 rounded-2xl border border-sand-300 bg-cream-50">
+              {extraLinks.map((l) => (
+                <li key={l.href}>
+                  <Link href={l.href} onClick={close} className="block px-4 py-3.5 text-[17px] font-semibold text-olive-900">
                     {l.label}
                   </Link>
-                </motion.li>
+                </li>
               ))}
             </ul>
 
-            <motion.div className="mt-8 flex flex-col gap-3" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
+            <div className="mt-6 flex flex-col gap-3">
               {user ? (
                 <>
                   <Link href="/hesabim" onClick={close} className="w-full rounded-full bg-olive-700 py-4 text-center font-semibold text-cream-50">
@@ -304,7 +252,7 @@ export default function Navbar() {
                   </Link>
                 </>
               )}
-            </motion.div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

@@ -4,7 +4,6 @@ import "./globals.css";
 import SmoothScroll from "@/components/providers/SmoothScroll";
 import AuthProvider from "@/components/providers/AuthProvider";
 import CatalogProvider from "@/components/providers/CatalogProvider";
-import CustomCursor from "@/components/ui/CustomCursor";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import CartDrawer from "@/components/cart/CartDrawer";
@@ -39,11 +38,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <CatalogProvider data={catalogData}>
           <AuthProvider>
             <SmoothScroll>
-              <CustomCursor />
               <Navbar />
               <CartDrawer />
               {children}
-               <WelcomeModal />
+              <WelcomeModal />
               <Footer />
             </SmoothScroll>
           </AuthProvider>

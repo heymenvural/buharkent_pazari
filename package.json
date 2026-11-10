@@ -3,10 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "node scripts/stock-photos.mjs",
     "dev": "next dev",
+    "prebuild": "node scripts/stock-photos.mjs",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "photos": "node scripts/stock-photos.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",

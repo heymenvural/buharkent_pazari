@@ -1,5 +1,6 @@
 "use client";
 
+import ProductImage from "@/components/shop/ProductImage";
 import Link from "next/link";
 import { useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -101,9 +102,9 @@ export default function CartDrawer() {
                           <Link
                             href={`/urun/${i.slug}`}
                             onClick={close}
-                            className={`grid h-20 w-20 shrink-0 place-items-center rounded-2xl bg-gradient-to-br ${p?.bg ?? "from-sand-300 to-sand-400"}`}
+                            className="shrink-0"
                           >
-                            {Icon && <Icon strokeWidth={1.2} className={`h-9 w-9 ${p?.light ? "text-olive-700/60" : "text-cream-50/70"}`} />}
+                            <ProductImage src={p?.images?.[0]} icon={Icon} sizes="80px" className="h-20 w-20 rounded-xl" />
                           </Link>
                           <div className="flex min-w-0 flex-1 flex-col">
                             <div className="flex items-start justify-between gap-2">
@@ -111,7 +112,7 @@ export default function CartDrawer() {
                                 <Link href={`/urun/${i.slug}`} onClick={close} className="block truncate font-display text-base text-ink hover:text-olive-700">
                                   {i.name}
                                 </Link>
-                                <p className="truncate text-xs text-muted">
+                                <p className="truncate text-sm text-muted">
                                   {i.unit} · {i.seller}
                                 </p>
                               </div>

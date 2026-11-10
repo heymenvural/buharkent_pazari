@@ -17,10 +17,16 @@
   --color-fig-600: #6e3b4e;
 
   --color-ink: #2b2620;
-  --color-muted: #7a6f60;
+  --color-muted: #625849;
 
-  --font-display: var(--font-display), Georgia, serif;
-  --font-sans: var(--font-sans), system-ui, sans-serif;
+  --font-display: var(--font-fraunces), Georgia, serif;
+  --font-sans: var(--font-manrope), system-ui, sans-serif;
+
+  /* Okunabilirlik: küçük yazılar bir tık büyük */
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.15rem;
+  --text-sm: 0.9375rem;
+  --text-sm--line-height: 1.4rem;
 
   --radius-xl2: 1.25rem;
   --shadow-soft: 0 10px 30px -12px rgb(43 38 32 / 0.18);
@@ -35,15 +41,19 @@ html {
 }
 
 body {
+  font-size: 16px;
+  line-height: 1.55;
   background: var(--color-cream-100);
   color: var(--color-ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3, h4 {
-  font-family: var(--font-display);
-  letter-spacing: -0.01em;
+@layer base {
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
 }
 
 ::selection {

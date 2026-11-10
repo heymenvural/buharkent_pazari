@@ -7,10 +7,8 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
     <ReactLenis
       root
       options={{
-        lerp: 0.09,
-        smoothWheel: true,
-        wheelMultiplier: 1,
-        touchMultiplier: 1.4,
+        // Tarayıcının kendi kaydırması: daha az yorucu. Lenis sadece pencere açıkken sayfayı kilitlemek için kalıyor.
+        smoothWheel: false,
       }}
     >
       {children}

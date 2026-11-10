@@ -227,7 +227,7 @@ export default function ProductListing({ category, query }: { category?: string;
           >
             <SlidersHorizontal className="h-4 w-4" /> Filtrele
             {activeCount > 0 && (
-              <span className="grid h-5 min-w-5 place-items-center rounded-full bg-terra-500 px-1 text-[10px] font-bold text-cream-50">
+              <span className="grid h-5 min-w-5 place-items-center rounded-full bg-terra-500 px-1 text-xs font-bold text-cream-50">
                 {activeCount}
               </span>
             )}

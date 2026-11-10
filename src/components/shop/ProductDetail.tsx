@@ -60,7 +60,8 @@ export default function ProductDetail({ slug, initialSeller }: { slug: string; i
   const current = lines.find((l) => l.seller.slug === sellerSlug) ?? lines.find((l) => l.variant.stock > 0) ?? lines[0];
   const reviewsList = current ? offerReviews(current.offer.id) : [];
   // Üreticinin kendi fotoğrafları varsa onlar, yoksa katalog görselleri, o da yoksa ikon gösterilir
-  const photos = (current?.offer.images?.length ? current.offer.images : product.images ?? []).slice(0, 6);
+  const ownPhotos = !!current?.offer.images?.length;
+  const photos = (ownPhotos ? current!.offer.images! : product.images ?? []).slice(0, 6);
   const photo = photos.length ? photos[thumb % photos.length] : undefined;
 
   const related = useMemo(() => {
@@ -101,31 +102,26 @@ export default function ProductDetail({ slug, initialSeller }: { slug: string; i
       <div className="mt-5 grid gap-8 lg:grid-cols-[1fr_1.1fr] lg:gap-12">
         {/* Galeri */}
         <div className="lg:sticky lg:top-36 lg:self-start">
-          <div ref={imgRef} className={`relative aspect-square overflow-hidden rounded-[2rem] bg-gradient-to-br ${product.bg}`}>
-            <span className="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full border border-white/15" />
+          <div ref={imgRef} className="relative aspect-square overflow-hidden rounded-3xl bg-cream-200">
             <AnimatePresence mode="wait">
               <motion.span
                 key={`${current?.seller.slug}-${thumb}`}
                 className="absolute inset-0 grid place-items-center"
-                initial={{ opacity: 0, scale: 1.08 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.5, ease }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
               >
                 {photo ? (
                   <Image src={photo} alt={product.name} fill priority sizes="(max-width: 1024px) 100vw, 600px" className="object-cover" />
                 ) : (
-                  <Icon
-                    strokeWidth={0.8}
-                    style={{ rotate: `${[-6, 8, -14, 18][thumb % 4]}deg` }}
-                    className={`h-1/2 w-1/2 ${product.light ? "text-olive-700/40" : "text-cream-50/45"}`}
-                  />
+                  <Icon strokeWidth={1} className="h-1/3 w-1/3 text-olive-700/30" />
                 )}
               </motion.span>
             </AnimatePresence>
-            {current && (
-              <span className="absolute bottom-4 left-4 flex items-center gap-1.5 rounded-full bg-cream-50/90 px-3 py-1.5 text-xs font-semibold text-olive-900 backdrop-blur">
-                <Camera className="h-3.5 w-3.5" /> {current.seller.name}
+            {current && photo && (
+              <span className="absolute bottom-4 left-4 flex items-center gap-1.5 rounded-full bg-cream-50/90 px-3 py-1.5 text-[13px] font-semibold text-olive-900">
+                <Camera className="h-4 w-4" /> {ownPhotos ? current.seller.name : "Temsili fotoğraf"}
               </span>
             )}
           </div>
@@ -144,21 +140,6 @@ export default function ProductDetail({ slug, initialSeller }: { slug: string; i
                 </button>
               ))}
             </div>
-          ) : photos.length === 0 ? (
-          <div className="mt-3 grid grid-cols-4 gap-3">
-            {[0, 1, 2, 3].map((i) => (
-              <button
-                key={i}
-                onClick={() => setThumb(i)}
-                aria-label={`Görsel ${i + 1}`}
-                className={`relative grid aspect-square place-items-center overflow-hidden rounded-2xl bg-gradient-to-br transition-all ${product.bg} ${
-                  thumb === i ? "ring-2 ring-olive-700 ring-offset-2 ring-offset-cream-100" : "opacity-70 hover:opacity-100"
-                }`}
-              >
-                <Icon strokeWidth={1} style={{ rotate: `${[-6, 8, -14, 18][i]}deg` }} className={`h-1/2 w-1/2 ${product.light ? "text-olive-700/40" : "text-cream-50/50"}`} />
-              </button>
-            ))}
-          </div>
           ) : null}
         </div>
 
@@ -247,8 +228,8 @@ export default function ProductDetail({ slug, initialSeller }: { slug: string; i
                   <span className="shrink-0 text-right">
                     {l.variant.oldPrice && <span className="block text-xs text-muted line-through">{formatPrice(l.variant.oldPrice)}</span>}
                     <span className="block font-bold text-olive-900">{formatPrice(l.variant.price)}</span>
-                    {unitPrice(l.variant.label, l.variant.price) && <span className="block text-[11px] text-muted">{unitPrice(l.variant.label, l.variant.price)}</span>}
-                    <span className="block text-[11px] text-muted">{out ? "Stokta yok" : `Kargo dahil ${formatPrice(total)}`}</span>
+                    {unitPrice(l.variant.label, l.variant.price) && <span className="block text-xs text-muted">{unitPrice(l.variant.label, l.variant.price)}</span>}
+                    <span className="block text-xs text-muted">{out ? "Stokta yok" : `Kargo dahil ${formatPrice(total)}`}</span>
                   </span>
                 </button>
               );
@@ -338,11 +319,11 @@ export default function ProductDetail({ slug, initialSeller }: { slug: string; i
                   <h3 className="mt-3 text-2xl">{current.seller.name}</h3>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {current.seller.verified && (
-                      <span className="flex items-center gap-1 rounded-full bg-cream-50/10 px-2.5 py-1 text-[11px] font-semibold">
+                      <span className="flex items-center gap-1 rounded-full bg-cream-50/10 px-2.5 py-1 text-xs font-semibold">
                         <BadgeCheck className="h-3.5 w-3.5" /> Dernek onaylı
                       </span>
                     )}
-                    <span className="rounded-full bg-cream-50/10 px-2.5 py-1 text-[11px] font-semibold">{current.seller.type}</span>
+                    <span className="rounded-full bg-cream-50/10 px-2.5 py-1 text-xs font-semibold">{current.seller.type}</span>
                   </div>
                   <div className="mt-4 space-y-1.5 text-sm text-cream-50/75">
                     <p className="flex items-center gap-2"><MapPin className="h-4 w-4" /> {current.seller.village}</p>
@@ -407,7 +388,7 @@ export default function ProductDetail({ slug, initialSeller }: { slug: string; i
       {/* Mobil sabit bar */}
       {current && (
         <div className="fixed inset-x-0 bottom-0 z-30 border-t border-sand-300 bg-cream-50/95 p-3 backdrop-blur-md lg:hidden">
-          <p className="truncate px-1 text-[11px] text-muted">
+          <p className="truncate px-1 text-xs text-muted">
             {current.seller.name} · {label}
           </p>
           <div className="mt-1.5 flex items-center gap-2">

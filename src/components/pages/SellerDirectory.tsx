@@ -89,7 +89,7 @@ export default function SellerDirectory() {
                     {s.name}
                     {s.verified && <BadgeCheck className="h-5 w-5 shrink-0 text-olive-700" />}
                   </h2>
-                  <span className={`mt-1 self-start rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${s.type === "Kadın Girişimci" ? "bg-fig-600/10 text-fig-600" : "bg-olive-500/15 text-olive-700"}`}>
+                  <span className={`mt-1 self-start rounded-full px-2.5 py-0.5 text-xs font-semibold ${s.type === "Kadın Girişimci" ? "bg-fig-600/10 text-fig-600" : "bg-olive-500/15 text-olive-700"}`}>
                     {s.type}
                   </span>
                   <p className="mt-4 flex-1 font-display italic leading-relaxed text-olive-700">&ldquo;{s.tagline}&rdquo;</p>

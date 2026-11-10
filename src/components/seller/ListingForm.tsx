@@ -187,8 +187,8 @@ export default function ListingForm({ products, types, initial }: { products: Pi
 
         {/* 2. Fotoğraflar */}
         <section className="rounded-[2rem] bg-cream-50 p-5 shadow-soft md:p-7">
-          <h2 className="text-xl font-semibold text-olive-900">{editing ? "Fotoğraflar" : "2. Fotoğraflar"}</h2>
-          <p className="mb-4 mt-1 text-sm text-muted">Gün ışığında, sade bir arka planla çekilmiş fotoğraflar daha çok satar.</p>
+          <h2 className="text-xl font-semibold text-olive-900">{editing ? "Fotoğraflar" : "2. Fotoğraflar (isteğe bağlı)"}</h2>
+          <p className="mb-4 mt-1 text-sm text-muted">İsteğe bağlı. Fotoğraf eklemezsen ürün genel bir fotoğrafla görünür; ama kendi ürününün fotoğrafı her zaman daha çok satar.</p>
           <ImageUploader value={images} onChange={(v) => { setImages(v); setErrors({}); }} error={errors.images} />
         </section>
 

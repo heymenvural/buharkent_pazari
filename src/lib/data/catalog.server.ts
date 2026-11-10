@@ -8,6 +8,7 @@ import { User, type IUser } from "@/models/User";
 import { SellerDocument } from "@/models/SellerDocument";
 import type { DocKey } from "@/lib/compliance";
 import { toWaNumber } from "@/lib/whatsapp";
+import { productPhotos } from "@/lib/stockPhotos";
 import { hydrateCatalog, type CatalogData, type SellerType } from "@/lib/catalog";
 
 const empty: CatalogData = { products: [], sellers: [], offers: [], reviews: [] };
@@ -72,7 +73,7 @@ async function load(): Promise<CatalogData> {
         iconKey: p.iconKey,
         bg: p.bg,
         light: p.light,
-        images: p.images,
+        images: productPhotos(p),
         tags: p.tags,
       })),
     sellers: approved.map((p) => {

@@ -13,6 +13,7 @@ import { round2, shippingForPart, type PartStatus } from "@/lib/orders";
 import { lookupSchema, orderSchema } from "@/lib/validation/checkout";
 import { sendOrderPlacedEmail, sendSellerNewOrderEmail } from "@/lib/mailer";
 import { Listing } from "@/models/Listing";
+import { productPhotos } from "@/lib/stockPhotos";
 import { returnStock, takeStock } from "@/lib/stock";
 import { Order, type IOrderPart } from "@/models/Order";
 import { Product } from "@/models/Product";
@@ -100,7 +101,7 @@ export async function createOrder(input: unknown): Promise<OrderResult> {
         .lean(),
       SellerProfile.find({ user: trusted({ $in: sellerIds }) }).lean(),
       Product.find({ _id: trusted({ $in: listings.map((l) => l.product) }) })
-        .select("name slug active images")
+        .select("name slug active images productType category")
         .lean(),
     ]);
 
@@ -253,7 +254,7 @@ export async function createOrder(input: unknown): Promise<OrderResult> {
           label: l.variant.label,
           price: l.variant.price,
           qty: l.qty,
-          image: l.listing.images?.[0] ?? l.product.images?.[0],
+          image: l.listing.images?.[0] ?? productPhotos(l.product)[0],
         })),
         subtotal,
         shipping,

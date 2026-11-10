@@ -54,7 +54,7 @@ export default function AccountView({ name, email, role }: { name: string; email
           const Icon = c.icon;
           const inner = (
             <>
-              <span className={`absolute right-5 top-5 rounded-full px-2.5 py-0.5 text-[10px] font-bold ${c.href ? "bg-olive-700 text-cream-50" : "bg-sand-300 text-olive-900"}`}>
+              <span className={`absolute right-5 top-5 rounded-full px-2.5 py-0.5 text-xs font-bold ${c.href ? "bg-olive-700 text-cream-50" : "bg-sand-300 text-olive-900"}`}>
                 {c.href ? <ArrowUpRight className="h-3.5 w-3.5" /> : "Yakında"}
               </span>
               <span className="grid h-12 w-12 place-items-center rounded-2xl bg-olive-700/10 text-olive-700">

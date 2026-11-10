@@ -1,5 +1,6 @@
 "use client";
 
+import ProductImage from "@/components/shop/ProductImage";
 import Image from "next/image";
 import AskSeller from "@/components/shop/AskSeller";
 import Link from "next/link";
@@ -123,14 +124,9 @@ export default function SellerProfile({ slug }: { slug: string }) {
                   transition={{ delay: (i % 3) * 0.07, duration: 0.6 }}
                 >
                   <Link href={`/urun/${p.slug}?uretici=${seller.slug}`} className="group block">
-                    <span className={`relative grid aspect-square place-items-center overflow-hidden rounded-3xl bg-gradient-to-br ${p.bg}`}>
-                      <Icon
-                        strokeWidth={1}
-                        className={`h-1/2 w-1/2 transition-transform duration-700 group-hover:-rotate-6 group-hover:scale-110 ${p.light ? "text-olive-700/40" : "text-cream-50/40"}`}
-                      />
-                    </span>
+                    <ProductImage src={o.images?.[0] ?? p.images?.[0]} icon={Icon} alt={p.name} className="aspect-[4/3] rounded-2xl" />
                     <span className="mt-3 block px-1 font-display text-base leading-snug text-ink group-hover:text-olive-700 md:text-lg">{p.name}</span>
-                    <span className="block px-1 text-xs text-muted">{o.variants.map((v) => v.label).join(" · ")}</span>
+                    <span className="block px-1 text-sm text-muted">{o.variants.map((v) => v.label).join(" · ")}</span>
                     <span className="mt-1 block px-1">
                       <span className="font-bold text-olive-900">{formatPrice(min)}</span>
                       <span className="ml-1 text-xs text-muted">&apos;den başlayan</span>

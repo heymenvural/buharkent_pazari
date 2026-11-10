@@ -31,7 +31,7 @@ export const listingSchema = z
       })
       .optional(),
     note: z.string().trim().min(20, "Ürününü biraz daha anlat (en az 20 karakter)").max(2000, "En fazla 2000 karakter"),
-    images: z.array(z.string().max(300)).min(1, "En az bir fotoğraf ekle").max(6, "En fazla 6 fotoğraf"),
+    images: z.array(z.string().max(300)).max(6, "En fazla 6 fotoğraf"),
     variants: z.array(variantSchema).min(1, "En az bir seçenek ekle").max(10, "En fazla 10 seçenek"),
     shippingFee: money(5_000),
     shipsIn: z.enum(SHIPS_IN),

@@ -29,7 +29,7 @@ export default function OrderTimeline({ status, payment, history }: { status: Pa
               {active && <span className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-terra-500" />}
               <span className="truncate">{active && s === "pending_payment" ? "Ödeme bekleniyor" : label(s)}</span>
             </p>
-            {at && i <= current && <p className="text-[11px] text-muted">{new Date(at).toLocaleDateString("tr-TR", { day: "numeric", month: "short" })}</p>}
+            {at && i <= current && <p className="text-xs text-muted">{new Date(at).toLocaleDateString("tr-TR", { day: "numeric", month: "short" })}</p>}
           </li>
         );
       })}

@@ -1,5 +1,6 @@
 "use client";
 
+import ProductImage from "@/components/shop/ProductImage";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -62,12 +63,10 @@ export default function QuickAddModal({
             initial={{ y: "100%", opacity: 0.5 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: "100%", opacity: 0 }}
-            transition={{ duration: 0.55, ease }}
+            transition={{ duration: 0.3, ease }}
           >
             <div className="flex items-center gap-4 border-b border-sand-300 p-5">
-              <span className={`grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-gradient-to-br ${product.bg}`}>
-                <Icon strokeWidth={1.2} className={`h-8 w-8 ${product.light ? "text-olive-700/60" : "text-cream-50/70"}`} />
-              </span>
+              <ProductImage src={product.images?.[0]} icon={Icon} sizes="64px" className="h-16 w-16 shrink-0 rounded-xl" />
               <div className="min-w-0 flex-1">
                 <p className="truncate font-display text-xl text-olive-900">{product.name}</p>
                 <Link href={`/urun/${product.slug}`} onClick={onClose} className="text-xs font-semibold text-olive-700 hover:underline">
