@@ -21,6 +21,7 @@ type CartState = {
   add: (item: Omit<CartItem, "qty">, qty?: number) => void;
   remove: (id: string) => void;
   setQty: (id: string, qty: number) => void;
+  patch: (id: string, p: Partial<Pick<CartItem, "price" | "maxQty" | "qty">>) => void;
   clear: () => void;
 };
 
@@ -51,6 +52,16 @@ export const useCart = create<CartState>()(
             qty <= 0
               ? s.items.filter((i) => i.id !== id)
               : s.items.map((i) => (i.id === id ? { ...i, qty: clampQty(qty, i.maxQty) } : i)),
+        })),
+      patch: (id, p) =>
+        set((s) => ({
+          items: s.items
+            .map((i) => {
+              if (i.id !== id) return i;
+              const next = { ...i, ...p };
+              return { ...next, qty: clampQty(next.qty, next.maxQty) };
+            })
+            .filter((i) => i.qty > 0),
         })),
       clear: () => set({ items: [] }),
     }),

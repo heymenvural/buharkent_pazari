@@ -6,12 +6,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
 import { motion } from "framer-motion";
 import {
-  CheckCircle2, Clock, ExternalLink, FileCheck2, Loader2, LogOut, Package, Pencil, Plus, Save, Store, Truck, XCircle,
+  Banknote, CheckCircle2, Clock, ExternalLink, FileCheck2, Loader2, LogOut, Package, Pencil, Plus, Receipt, Save, Store, Truck, XCircle,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { setListingActive, updateShop } from "@/app/actions/seller";
 import { formatPrice } from "@/lib/catalog";
 import { SingleImage } from "@/components/seller/ImageUploader";
+import SellerOrders from "@/components/orders/SellerOrders";
+import type { OrderView } from "@/lib/data/orders.server";
 
 export type PanelListing = {
   id: string;
@@ -34,6 +36,7 @@ export type PanelShop = {
   avatar: string;
   cover: string;
   freeShippingOver: string;
+  cod: boolean;
 };
 
 const statusChip = {
@@ -119,6 +122,7 @@ function ShopForm({ shop }: { shop: PanelShop }) {
         avatar: f.avatar,
         cover: f.cover,
         freeShippingOver: f.freeShippingOver.trim() && Number.isFinite(n) ? n : null,
+        codEnabled: f.cod,
       });
       if (!res.ok) return setErrors(res.errors ?? { form: "Bir sorun oluştu." });
       setSaved(true);
@@ -169,6 +173,16 @@ function ShopForm({ shop }: { shop: PanelShop }) {
         </label>
       </section>
 
+      <section className="rounded-[2rem] bg-cream-50 p-5 shadow-soft md:p-7">
+        <h2 className="flex items-center gap-2 text-xl font-semibold text-olive-900"><Banknote className="h-5 w-5" /> Kapıda ödeme</h2>
+        <label className="mt-3 flex cursor-pointer items-start gap-3">
+          <input type="checkbox" checked={f.cod} onChange={(e) => set("cod", e.target.checked)} className="mt-1 h-6 w-6 shrink-0 accent-[#4a5627]" />
+          <span className="text-ink/80">
+            <b className="text-ink">Kapıda ödeme kabul ediyorum.</b> Sadece çalıştığın kargo firması tahsilatlı gönderim yapıyorsa işaretle; tahsil edilen para kargo firması üzerinden sana gelir.
+          </span>
+        </label>
+      </section>
+
       {errors.form && <p className="rounded-2xl bg-terra-500/10 px-4 py-3 font-medium text-terra-600">{errors.form}</p>}
       <button onClick={save} disabled={pending} className="flex min-h-[56px] w-full items-center justify-center gap-2 rounded-full bg-olive-700 text-lg font-semibold text-cream-50 hover:bg-olive-900 disabled:opacity-60">
         {pending ? <Loader2 className="h-5 w-5 animate-spin" /> : saved ? <CheckCircle2 className="h-5 w-5" /> : <Save className="h-5 w-5" />} {saved ? "Kaydedildi" : "Kaydet"}
@@ -177,9 +191,16 @@ function ShopForm({ shop }: { shop: PanelShop }) {
   );
 }
 
-export default function SellerPanel({ listings, shop }: { listings: PanelListing[]; shop: PanelShop }) {
+type Tab = "siparisler" | "urunler" | "magaza";
+
+export default function SellerPanel({ listings, shop, orders }: { listings: PanelListing[]; shop: PanelShop; orders: OrderView[] }) {
   const params = useSearchParams();
-  const [tab, setTab] = useState<"urunler" | "magaza">(params.get("sekme") === "magaza" ? "magaza" : "urunler");
+  const openOrders = orders.filter((o) => ["pending_payment", "preparing", "shipped"].includes(o.parts[0].status)).length;
+  const [tab, setTab] = useState<Tab>(() => {
+    const q = params.get("sekme");
+    if (q === "magaza" || q === "urunler" || q === "siparisler") return q;
+    return openOrders ? "siparisler" : "urunler";
+  });
   const savedStatus = params.get("kaydedildi");
 
   return (
@@ -211,23 +232,27 @@ export default function SellerPanel({ listings, shop }: { listings: PanelListing
         </motion.p>
       )}
 
-      <div className="mt-8 flex gap-2">
+      <div className="mt-8 flex flex-wrap gap-2">
         {[
-          { key: "urunler" as const, label: "Ürünlerim", icon: Package },
-          { key: "magaza" as const, label: "Mağazam", icon: Store },
-        ].map(({ key, label, icon: Icon }) => (
+          { key: "siparisler" as const, label: "Siparişler", icon: Receipt, n: openOrders },
+          { key: "urunler" as const, label: "Ürünlerim", icon: Package, n: 0 },
+          { key: "magaza" as const, label: "Mağazam", icon: Store, n: 0 },
+        ].map(({ key, label, icon: Icon, n }) => (
           <button
             key={key}
             onClick={() => setTab(key)}
-            className={`flex items-center gap-2 rounded-full px-5 py-2.5 font-semibold transition-colors ${tab === key ? "bg-olive-900 text-cream-50" : "bg-cream-50 text-olive-900 shadow-soft"}`}
+            className={`flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-colors sm:px-5 sm:text-base ${tab === key ? "bg-olive-900 text-cream-50" : "bg-cream-50 text-olive-900 shadow-soft"}`}
           >
             <Icon className="h-4 w-4" /> {label}
+            {n > 0 && <span className="grid h-5 min-w-5 place-items-center rounded-full bg-terra-500 px-1.5 text-xs text-cream-50">{n}</span>}
           </button>
         ))}
       </div>
 
       <div className="mt-6">
-        {tab === "urunler" ? (
+        {tab === "siparisler" ? (
+          <SellerOrders orders={orders} />
+        ) : tab === "urunler" ? (
           <div className="space-y-3">
             <Link href="/panel/urun/yeni" className="flex min-h-[64px] items-center justify-center gap-2 rounded-3xl border-2 border-dashed border-olive-700 font-semibold text-olive-700 hover:bg-olive-700/5">
               <Plus className="h-5 w-5" /> Yeni ürün ekle

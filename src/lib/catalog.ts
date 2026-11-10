@@ -22,6 +22,7 @@ export type Seller = {
   avatar?: string;
   cover?: string;
   freeShippingOver?: number;
+  cod?: boolean;
 };
 
 export type Category = { slug: string; name: string; short: string; icon: LucideIcon; bg: string };

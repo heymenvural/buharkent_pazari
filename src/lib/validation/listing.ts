@@ -51,6 +51,7 @@ export const shopSchema = z.object({
   avatar: z.string().max(300),
   cover: z.string().max(300),
   freeShippingOver: z.number().finite().min(0).max(100_000).nullable(),
+  codEnabled: z.boolean(),
 });
 
 export type ListingInput = z.input<typeof listingSchema>;

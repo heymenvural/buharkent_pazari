@@ -25,6 +25,7 @@ const extraLinks = [
   { href: "/ureticiler", label: "Üreticiler" },
   { href: "/hakkimizda", label: "Hakkımızda" },
   { href: "/uretici-ol", label: "Üretici Ol" },
+  { href: "/siparis-takip", label: "Sipariş Takibi" },
   { href: "/sss", label: "Sıkça Sorulanlar" },
 ];
 

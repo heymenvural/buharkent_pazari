@@ -1,12 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { useSession } from "next-auth/react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, Banknote, Landmark, Lock, ShieldCheck } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Banknote, Landmark, Loader2, Lock, ShieldCheck } from "lucide-react";
 import { useLenis } from "lenis/react";
 import { useCart, selectTotal, type CartItem } from "@/store/cart";
-import { formatPrice } from "@/lib/catalog";
+import { formatPrice, offers, sellers } from "@/lib/catalog";
+import { shippingForPart } from "@/lib/orders";
+import { createOrder } from "@/app/actions/order";
 import { checkoutSchema, type CheckoutInput } from "@/lib/validation/checkout";
 
 const ease = [0.76, 0, 0.24, 1] as const;
@@ -24,10 +28,7 @@ const initial: CheckoutInput = {
   contract: false,
 };
 
-type Errors = Partial<Record<keyof CheckoutInput, string>>;
-
-// Aynı üreticiden alınan ürünler tek pakette gider: en yüksek kargo ücreti uygulanır
-const shippingFor = (list: CartItem[]) => Math.max(0, ...list.map((i) => i.shippingFee ?? 0));
+type Errors = Partial<Record<keyof CheckoutInput | "form", string>>;
 
 function Field({ label, error, children, className = "" }: { label: string; error?: string; children: React.ReactNode; className?: string }) {
   return (
@@ -68,34 +69,60 @@ function Card({ title, step, children }: { title: string; step: string; children
 }
 
 export default function CheckoutForm() {
+  const router = useRouter();
+  const { data: session } = useSession();
   const [mounted, setMounted] = useState(false);
   const [form, setForm] = useState<CheckoutInput>(initial);
   const [errors, setErrors] = useState<Errors>({});
-  const [orderNo, setOrderNo] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [done, setDone] = useState(false);
   const items = useCart((s) => s.items);
   const subtotal = useCart(selectTotal);
   const clear = useCart((s) => s.clear);
+  const patch = useCart((s) => s.patch);
   const lenis = useLenis();
 
   useEffect(() => setMounted(true), []);
 
+  // Giriş yapmış kullanıcının adı ve e-postası hazır gelsin
+  const [prefilled, setPrefilled] = useState(false);
+  if (session?.user && !prefilled) {
+    const u = session.user;
+    setPrefilled(true);
+    setForm((f) => ({ ...f, fullName: f.fullName || u.name || "", email: f.email || u.email || "" }));
+  }
+
+  // Ürünler üreticiye göre ayrı paketlenir; kargo ve ücretsiz kargo sınırı üretici bazında
   const groups = useMemo(() => {
     const map = new Map<string, CartItem[]>();
-    items.forEach((i) => map.set(i.seller, [...(map.get(i.seller) ?? []), i]));
-    return [...map.entries()].map(([seller, list]) => ({ seller, list, shipping: shippingFor(list) }));
+    items.forEach((i) => {
+      const sid = offers.find((o) => o.id === i.offerId)?.sellerId ?? i.seller;
+      map.set(sid, [...(map.get(sid) ?? []), i]);
+    });
+    return [...map.entries()].map(([sid, list]) => {
+      const seller = sellers.find((s) => s.id === sid);
+      const sub = list.reduce((a, i) => a + i.qty * i.price, 0);
+      const shipping = shippingForPart(sub, list.map((i) => i.shippingFee ?? 0), seller?.freeShippingOver);
+      const missing = seller?.freeShippingOver && shipping > 0 ? seller.freeShippingOver - sub : 0;
+      return { key: sid, seller: seller?.name ?? list[0].seller, list, shipping, cod: !!seller?.cod, missing };
+    });
   }, [items]);
 
   const shipping = groups.reduce((a, g) => a + g.shipping, 0);
   const grandTotal = subtotal + shipping;
+  const codAllowed = groups.length > 0 && groups.every((g) => g.cod);
+
+  // Kapıda ödeme sadece sepetteki tüm üreticiler kabul ediyorsa seçilebilir
+  const payment = codAllowed ? form.payment : "havale";
 
   const set = <K extends keyof CheckoutInput>(key: K, value: CheckoutInput[K]) => {
     setForm((f) => ({ ...f, [key]: value }));
-    if (errors[key]) setErrors((e) => ({ ...e, [key]: undefined }));
+    if (errors[key] || errors.form) setErrors((e) => ({ ...e, [key]: undefined, form: undefined }));
   };
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const result = checkoutSchema.safeParse(form);
+    const result = checkoutSchema.safeParse({ ...form, payment });
     if (!result.success) {
       const next: Errors = {};
       result.error.issues.forEach((iss) => {
@@ -106,32 +133,40 @@ export default function CheckoutForm() {
       lenis?.scrollTo(0, { duration: 1 });
       return;
     }
-    // DEMO: Veritabanı adımında sipariş sunucuya gönderilecek, fiyatlar sunucuda yeniden hesaplanacak
-    setOrderNo("BP-" + Date.now().toString().slice(-6));
+
+    setLoading(true);
+    const res = await createOrder({
+      form: { ...form, payment },
+      items: items
+        .filter((i) => i.offerId && i.variantId)
+        .map((i) => ({ offerId: i.offerId!, variantId: i.variantId!, qty: i.qty, price: i.price })),
+    });
+
+    if (!res.ok) {
+      setLoading(false);
+      // Fiyat/stok değiştiyse sepet sunucudaki doğru bilgilerle güncellenir
+      res.fixes?.forEach((f) => {
+        const id = `${f.offerId}:${f.variantId}`;
+        if (f.removed) patch(id, { qty: 0 });
+        else patch(id, { ...(f.price !== undefined ? { price: f.price } : {}), ...(f.maxQty !== undefined ? { maxQty: f.maxQty } : {}) });
+      });
+      setErrors(res.errors ?? { form: "Sipariş oluşturulamadı." });
+      lenis?.scrollTo(0, { duration: 1 });
+      return;
+    }
+
+    setDone(true);
     clear();
-    lenis?.scrollTo(0, { duration: 1 });
+    router.push(`/siparis/${res.orderNo}?t=${res.token}&yeni=1`);
   };
 
   if (!mounted) return <div className="min-h-[60vh]" />;
 
-  if (orderNo) {
+  if (done) {
     return (
-      <div className="mx-auto flex min-h-[60vh] max-w-lg flex-col items-center justify-center text-center">
-        <motion.svg viewBox="0 0 100 100" className="h-28 w-28" initial="hidden" animate="show">
-          <motion.circle cx="50" cy="50" r="45" fill="none" stroke="#6b7a3a" strokeWidth="5"
-            variants={{ hidden: { pathLength: 0 }, show: { pathLength: 1 } }} transition={{ duration: 0.8, ease }} />
-          <motion.path d="M30 52 L44 66 L71 37" fill="none" stroke="#6b7a3a" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"
-            variants={{ hidden: { pathLength: 0 }, show: { pathLength: 1 } }} transition={{ delay: 0.7, duration: 0.5, ease }} />
-        </motion.svg>
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }}>
-          <h1 className="mt-6 text-4xl text-olive-900 md:text-5xl">Siparişin alındı!</h1>
-          <p className="mt-3 text-muted">
-            Sipariş numaran <span className="font-bold text-olive-900">{orderNo}</span>. Detaylar e-posta adresine gönderilecek.
-          </p>
-          <Link href="/" className="mt-8 inline-flex rounded-full bg-olive-700 px-7 py-4 font-semibold text-cream-50 transition-colors hover:bg-olive-900">
-            Ana sayfaya dön
-          </Link>
-        </motion.div>
+      <div className="mx-auto flex min-h-[60vh] flex-col items-center justify-center text-center">
+        <Loader2 className="h-10 w-10 animate-spin text-olive-700" />
+        <p className="mt-4 text-muted">Siparişin oluşturuldu, yönlendiriliyorsun...</p>
       </div>
     );
   }
@@ -157,6 +192,11 @@ export default function CheckoutForm() {
         Siparişi <span className="italic text-terra-500">tamamla.</span>
       </h1>
       <p className="mt-2 text-muted">Üye olmadan sipariş verebilirsin.</p>
+      {errors.form && (
+        <p className="mt-6 flex gap-2 rounded-2xl bg-terra-500/10 px-4 py-3 font-medium text-terra-600">
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" /> {errors.form}
+        </p>
+      )}
 
       <div className="mt-10 grid gap-6 lg:grid-cols-[1.5fr_1fr] lg:gap-10">
         <form id="checkout-form" onSubmit={onSubmit} noValidate className="space-y-6">
@@ -194,17 +234,18 @@ export default function CheckoutForm() {
           <Card step="3" title="Ödeme yöntemi">
             <div className="grid gap-3 sm:grid-cols-2">
               {[
-                { key: "havale" as const, title: "Havale / EFT", desc: "Banka bilgileri e-postana gelir", icon: Landmark },
-                { key: "kapida" as const, title: "Kapıda ödeme", desc: "Teslimatta nakit veya kart", icon: Banknote },
+                { key: "havale" as const, title: "Havale / EFT", desc: "Doğrudan üreticinin hesabına", icon: Landmark, disabled: false },
+                { key: "kapida" as const, title: "Kapıda ödeme", desc: codAllowed ? "Teslimatta öde" : "Sepetindeki her üretici kabul etmiyor", icon: Banknote, disabled: !codAllowed },
               ].map((o) => {
-                const active = form.payment === o.key;
+                const active = payment === o.key;
                 const Icon = o.icon;
                 return (
                   <button
                     type="button"
                     key={o.key}
+                    disabled={o.disabled}
                     onClick={() => set("payment", o.key)}
-                    className={`relative flex items-start gap-3 rounded-2xl border p-4 text-left transition-colors ${
+                    className={`relative flex items-start gap-3 rounded-2xl border p-4 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
                       active ? "border-olive-700" : "border-sand-300 hover:border-sand-400"
                     }`}
                   >
@@ -220,6 +261,13 @@ export default function CheckoutForm() {
                 );
               })}
             </div>
+            {errors.payment && <p className="mt-3 text-sm font-medium text-terra-600">{errors.payment}</p>}
+            {payment === "havale" && (
+              <p className="mt-4 rounded-2xl bg-olive-500/10 p-4 text-sm leading-relaxed text-olive-900">
+                Buharkent Pazarı&apos;nda para aracıdan geçmez. Siparişi onayladıktan sonra her üreticinin IBAN&apos;ını ve ödeyeceğin tutarı göreceksin; aynı bilgiler e-postana da gelir.
+                {groups.length > 1 && <b> Sepetinde {groups.length} üretici var, {groups.length} ayrı havale yapacaksın.</b>}
+              </p>
+            )}
             <p className="mt-4 flex items-center gap-2 text-xs text-muted">
               <Lock className="h-3.5 w-3.5" /> Kredi kartı ile güvenli ödeme çok yakında.
             </p>
@@ -254,7 +302,7 @@ export default function CheckoutForm() {
 
             <div className="mt-5 space-y-4">
               {groups.map((g) => (
-                <div key={g.seller} className="rounded-2xl bg-cream-50/5 p-4">
+                <div key={g.key} className="rounded-2xl bg-cream-50/5 p-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sand-300">{g.seller}</p>
                   <ul className="mt-3 space-y-2 text-sm">
                     {g.list.map((i) => (
@@ -271,6 +319,9 @@ export default function CheckoutForm() {
                         {g.shipping === 0 ? "Ücretsiz" : formatPrice(g.shipping)}
                       </span>
                     </li>
+                    {g.missing > 0 && (
+                      <li className="text-xs text-sand-300">Bu üreticiden {formatPrice(g.missing)} daha eklersen kargo ücretsiz.</li>
+                    )}
                   </ul>
                 </div>
               ))}
@@ -291,8 +342,13 @@ export default function CheckoutForm() {
               </div>
             </div>
 
-            <button type="submit" form="checkout-form" className="mt-6 w-full rounded-full bg-terra-500 py-4 font-semibold transition-colors hover:bg-terra-600">
-              Siparişi Onayla
+            <button
+              type="submit"
+              form="checkout-form"
+              disabled={loading}
+              className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-terra-500 py-4 font-semibold transition-colors hover:bg-terra-600 disabled:opacity-60"
+            >
+              {loading && <Loader2 className="h-5 w-5 animate-spin" />} Siparişi Onayla
             </button>
             <p className="mt-3 flex items-center justify-center gap-2 text-xs text-cream-50/50">
               <ShieldCheck className="h-4 w-4" /> Bilgilerin güvenle korunur

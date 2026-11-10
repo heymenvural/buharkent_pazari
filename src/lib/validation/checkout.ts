@@ -20,3 +20,17 @@ export const checkoutSchema = z.object({
 });
 
 export type CheckoutInput = z.input<typeof checkoutSchema>;
+const objectId = z.string().regex(/^[a-f0-9]{24}$/i, "Geçersiz ürün");
+
+export const orderSchema = z.object({
+  form: checkoutSchema,
+  items: z
+    .array(z.object({ offerId: objectId, variantId: objectId, qty: z.number().int().min(1).max(99), price: z.number().min(0) }))
+    .min(1, "Sepetin boş")
+    .max(40, "Sepette çok fazla ürün var"),
+});
+
+export const lookupSchema = z.object({
+  orderNo: z.string().trim().toUpperCase().regex(/^BP-[A-Z0-9]{6}$/, "Sipariş numarası BP-XXXXXX şeklinde olmalı"),
+  email: z.string().trim().toLowerCase().email("Geçerli bir e-posta girin").max(120),
+});

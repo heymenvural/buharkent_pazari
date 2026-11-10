@@ -16,11 +16,11 @@ export default function AccountView({ name, email, role }: { name: string; email
   const initials = name.split(" ").slice(0, 2).map((w) => w[0]?.toLocaleUpperCase("tr")).join("");
 
   const cards: Card[] = [
-    { icon: Package, title: "Siparişlerim", text: "Siparişlerini ve kargo durumlarını takip et." },
+    { icon: Package, title: "Siparişlerim", text: "Siparişlerini ve kargo durumlarını takip et.", href: "/hesabim/siparisler" },
     { icon: MapPin, title: "Adreslerim", text: "Teslimat adreslerini kaydet, hızlı öde." },
     { icon: Heart, title: "Favorilerim", text: "Beğendiğin ürün ve üreticiler." },
     ...(role !== "buyer" ? [{ icon: Store, title: "Üretici paneli", text: "Ürünlerini ve mağazanı yönet.", href: "/panel" }] : []),
-    ...(role === "admin" ? [{ icon: ShieldCheck, title: "Yönetim paneli", text: "Başvurular, ürün onayı ve bildirimler.", href: "/yonetim/basvurular" }] : []),
+    ...(role === "admin" ? [{ icon: ShieldCheck, title: "Yönetim paneli", text: "Başvurular, ürün onayı, siparişler ve bildirimler.", href: "/yonetim/basvurular" }] : []),
   ];
 
   return (

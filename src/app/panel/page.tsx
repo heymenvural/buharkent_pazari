@@ -4,6 +4,8 @@ import { Suspense } from "react";
 import { getApprovedSeller } from "@/lib/data/seller.server";
 import { Listing } from "@/models/Listing";
 import { Product } from "@/models/Product";
+import { Order } from "@/models/Order";
+import { toOrderView } from "@/lib/data/orders.server";
 import SellerPanel, { type PanelListing, type PanelShop } from "@/components/seller/SellerPanel";
 
 export const metadata: Metadata = { title: "Üretici paneli", robots: { index: false } };
@@ -35,12 +37,17 @@ export default async function PanelPage() {
     avatar: profile.avatar ?? "",
     cover: profile.cover ?? "",
     freeShippingOver: profile.freeShippingOver ? String(profile.freeShippingOver) : "",
+    cod: !!profile.codEnabled,
   };
+
+  // Siparişlerde üretici sadece kendi paketini görür
+  const orderDocs = await Order.find({ "parts.seller": user._id }).sort({ createdAt: -1 }).limit(200).lean();
+  const orders = orderDocs.map((o) => toOrderView(o, { onlySeller: user._id.toString() }));
 
   return (
     <main className="px-4 pb-20 pt-[164px] md:px-8 md:pt-[150px]">
       <Suspense>
-        <SellerPanel listings={items} shop={shop} />
+        <SellerPanel listings={items} shop={shop} orders={orders} />
       </Suspense>
     </main>
   );

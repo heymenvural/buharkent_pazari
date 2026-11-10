@@ -16,6 +16,7 @@ const cols = [
     links: [
       { label: "Tüm Ürünler", href: "/urunler" },
       { label: "Canlı Pazar (3D)", href: "/canli-pazar" },
+      { label: "Sipariş Takibi", href: "/siparis-takip" },
       { label: "İncir & Kuru Ürünler", href: "/kategori/incir-kuru-urunler" },
       { label: "Zeytinyağı", href: "/kategori/zeytin-zeytinyagi" },
       { label: "Bal & Pekmez", href: "/kategori/bal-recel-pekmez" },

@@ -91,6 +91,7 @@ async function load(): Promise<CatalogData> {
         ...(p.avatar ? { avatar: p.avatar } : {}),
         ...(p.cover ? { cover: p.cover } : {}),
         ...(p.freeShippingOver ? { freeShippingOver: p.freeShippingOver } : {}),
+        ...(p.codEnabled ? { cod: true } : {}),
         badges: docs.filter((d) => d.user.toString() === uid).map((d) => BADGE[d.docKey]).filter((b): b is string => !!b),
       };
     }),
