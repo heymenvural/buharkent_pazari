@@ -7,6 +7,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import GoogleButton from "@/components/auth/GoogleButton";
 import { registerUser } from "@/app/actions/auth";
+import Turnstile from "@/components/ui/Turnstile";
 
 const inputCls = (err?: string) =>
   `w-full rounded-2xl border bg-cream-100 px-4 py-3.5 text-ink outline-none transition-colors focus:border-olive-500 ${err ? "border-terra-500" : "border-sand-300"}`;
@@ -40,6 +41,8 @@ export default function RegisterForm({ next }: { next: string }) {
   const [show, setShow] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [human, setHuman] = useState("");
+  const [resetKey, setResetKey] = useState(0);
   const score = strength(form.password);
 
   const set = <K extends keyof typeof form>(k: K, v: (typeof form)[K]) => {
@@ -50,9 +53,12 @@ export default function RegisterForm({ next }: { next: string }) {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const res = await registerUser(form);
+    const res = await registerUser({ ...form, turnstile: human });
     setLoading(false);
-    if (!res.ok) return setErrors(res.errors ?? {});
+    if (!res.ok) {
+      setResetKey((k) => k + 1); // doğrulama tek kullanımlık
+      return setErrors(res.errors ?? {});
+    }
     const q = new URLSearchParams({ email: res.email ?? form.email });
     if (res.notice) q.set("notice", "1");
     router.push(`/dogrula?${q.toString()}`);
@@ -113,6 +119,7 @@ export default function RegisterForm({ next }: { next: string }) {
         </label>
         <Err msg={errors.kvkk} />
 
+        <Turnstile onToken={setHuman} resetKey={resetKey} />
         {errors.form && <p className="rounded-2xl bg-terra-500/10 px-4 py-3 text-sm font-medium text-terra-600">{errors.form}</p>}
 
         <button

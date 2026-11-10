@@ -12,7 +12,7 @@ export async function POST() {
   const id = session?.user?.id;
   if (!id) return NextResponse.json({ ok: false, error: "Giriş yapmalısın." }, { status: 401 });
   if (!cloudinaryReady()) return NextResponse.json({ ok: false, error: "Fotoğraf yükleme henüz ayarlanmadı." }, { status: 503 });
-  if (!rateLimit(`img-sign:${id}`, 60, 60 * 60_000)) {
+  if (!await rateLimit(`img-sign:${id}`, 60, 60 * 60_000)) {
     return NextResponse.json({ ok: false, error: "Çok fazla fotoğraf yükledin, biraz sonra tekrar dene." }, { status: 429 });
   }
 

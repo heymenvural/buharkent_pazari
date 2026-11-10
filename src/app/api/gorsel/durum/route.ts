@@ -7,7 +7,8 @@ export const dynamic = "force-dynamic";
 /** Sadece admin: Cloudinary ayarlarının doğru olup olmadığını kontrol eder (gizli bilgileri göstermez) */
 export async function GET() {
   const session = await auth();
-  if (session?.user?.role !== "admin") return NextResponse.json({ error: "Bulunamadı" }, { status: 404 });
+  if (!session?.user) return NextResponse.json({ durum: "GİRİŞ YOK", ipucu: "Önce sitede admin hesabınla giriş yap, sonra bu sayfayı yenile." }, { status: 401 });
+  if (session.user.role !== "admin") return NextResponse.json({ durum: "YETKİ YOK", ipucu: `Şu an ${session.user.email} ile girişlisin; bu hesap admin değil. ADMIN_EMAILS listesindeki hesapla giriş yap.` }, { status: 403 });
 
   const cloud = process.env.CLOUDINARY_CLOUD_NAME?.trim();
   const key = process.env.CLOUDINARY_API_KEY?.trim();

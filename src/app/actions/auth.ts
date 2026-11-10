@@ -7,6 +7,7 @@ import { User } from "@/models/User";
 import { SellerProfile } from "@/models/SellerProfile";
 import { registerSchema, sellerRegisterSchema, verifySchema } from "@/lib/validation/auth";
 import { rateLimit } from "@/lib/rateLimit";
+import { HUMAN_ERROR, verifyHuman } from "@/lib/turnstile";
 import { checkCode, issueCode } from "@/lib/verification";
 import { sendSellerReceivedEmail } from "@/lib/mailer";
 import { PRODUCT_TYPES } from "@/lib/compliance";
@@ -35,7 +36,9 @@ const failed: FormResult = { ok: false, errors: { form: "Bir sorun oluştu, lüt
 
 /* ---------- Müşteri kaydı ---------- */
 export async function registerUser(input: unknown): Promise<FormResult> {
-  if (!rateLimit(`register:${await clientIp()}`, 5, 60 * 60_000)) return tooMany;
+  const ip = await clientIp();
+  if (!(await rateLimit(`register:${ip}`, 5, 60 * 60_000))) return tooMany;
+  if (!(await verifyHuman((input as { turnstile?: unknown } | null)?.turnstile, ip))) return { ok: false, errors: { form: HUMAN_ERROR } };
   const parsed = registerSchema.safeParse(input);
   if (!parsed.success) return { ok: false, errors: collect(parsed.error.issues) };
   const { name, email, password } = parsed.data;
@@ -68,7 +71,9 @@ export async function registerUser(input: unknown): Promise<FormResult> {
 
 /* ---------- Üretici başvurusu ---------- */
 export async function registerSeller(input: unknown): Promise<FormResult> {
-  if (!rateLimit(`seller-register:${await clientIp()}`, 3, 60 * 60_000)) return tooMany;
+  const ip = await clientIp();
+  if (!(await rateLimit(`seller-register:${ip}`, 3, 60 * 60_000))) return tooMany;
+  if (!(await verifyHuman((input as { turnstile?: unknown } | null)?.turnstile, ip))) return { ok: false, errors: { form: HUMAN_ERROR } };
   const parsed = sellerRegisterSchema.safeParse(input);
   if (!parsed.success) return { ok: false, errors: collect(parsed.error.issues) };
   const d = parsed.data;
@@ -118,7 +123,7 @@ export async function verifyEmail(input: unknown): Promise<FormResult> {
   const parsed = verifySchema.safeParse(input);
   if (!parsed.success) return { ok: false, errors: collect(parsed.error.issues) };
   const { email, code } = parsed.data;
-  if (!rateLimit(`verify:${await clientIp()}:${email}`, 10, 15 * 60_000)) return tooMany;
+  if (!await rateLimit(`verify:${await clientIp()}:${email}`, 10, 15 * 60_000)) return tooMany;
 
   try {
     await connectDB();
@@ -145,7 +150,7 @@ export async function verifyEmail(input: unknown): Promise<FormResult> {
 }
 
 export async function resendCode(rawEmail: unknown): Promise<FormResult> {
-  if (!rateLimit(`resend:${await clientIp()}`, 10, 60 * 60_000)) return tooMany;
+  if (!await rateLimit(`resend:${await clientIp()}`, 10, 60 * 60_000)) return tooMany;
   const parsed = verifySchema.shape.email.safeParse(rawEmail);
   if (!parsed.success) return { ok: false, errors: { form: "Geçerli bir e-posta girin." } };
 

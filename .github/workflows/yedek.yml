@@ -1,0 +1,65 @@
+name: Veritabanı yedeği
+
+on:
+  schedule:
+    - cron: "30 0 * * *" # her gece 03:30 (Türkiye saati)
+  workflow_dispatch: {} # Actions sekmesinden elle de çalıştırılabilir
+
+permissions:
+  contents: read
+
+concurrency:
+  group: yedek
+  cancel-in-progress: false
+
+jobs:
+  yedek:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Gerekli paketleri kur
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Ayarları kontrol et
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          BACKUP_PASSWORD: ${{ secrets.BACKUP_PASSWORD }}
+        run: |
+          if [ -z "$MONGODB_URI" ] || [ -z "$BACKUP_PASSWORD" ]; then
+            echo "::error::MONGODB_URI ve BACKUP_PASSWORD, GitHub → Settings → Secrets and variables → Actions kısmına eklenmeli."
+            exit 1
+          fi
+          if [ ${#BACKUP_PASSWORD} -lt 16 ]; then
+            echo "::error::BACKUP_PASSWORD en az 16 karakter olmalı."
+            exit 1
+          fi
+
+      - name: Yedek al
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+        run: node scripts/backup.mjs yedek.jsonl.gz
+
+      # Repo herkese açık olduğu için yedek, sadece senin bildiğin parolayla şifrelenir
+      - name: Şifrele
+        env:
+          BACKUP_PASSWORD: ${{ secrets.BACKUP_PASSWORD }}
+        run: |
+          NAME="yedek-$(TZ=Europe/Istanbul date +%Y-%m-%d).jsonl.gz.enc"
+          openssl enc -aes-256-cbc -pbkdf2 -iter 200000 -salt -in yedek.jsonl.gz -out "$NAME" -pass env:BACKUP_PASSWORD
+          shred -u yedek.jsonl.gz
+          echo "NAME=$NAME" >> "$GITHUB_ENV"
+          ls -lh "$NAME"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.NAME }}
+          path: ${{ env.NAME }}
+          retention-days: 30
+          if-no-files-found: error

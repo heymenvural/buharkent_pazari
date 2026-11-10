@@ -30,7 +30,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const { email, password } = parsed.data;
 
         const ip = request?.headers?.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-        if (!rateLimit(`login:${ip}:${email}`, 5, 15 * 60_000)) throw new RateLimited();
+        if (!await rateLimit(`login:${ip}:${email}`, 5, 15 * 60_000)) throw new RateLimited();
 
         await connectDB();
         const user = await User.findOne({ email }).select("+passwordHash");

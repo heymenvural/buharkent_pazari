@@ -7,6 +7,7 @@ import { signIn } from "next-auth/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Check, ChevronDown, Eye, EyeOff, FileCheck2, Loader2, MapPin, ShieldCheck, Star } from "lucide-react";
 import { registerSeller } from "@/app/actions/auth";
+import Turnstile from "@/components/ui/Turnstile";
 import { GROUPS, PRODUCT_TYPES, requirementsFor, taxOptionsFor, type Group, type TaxStatus } from "@/lib/compliance";
 import { formatIban } from "@/lib/iban";
 import type { SellerRegisterInput } from "@/lib/validation/auth";
@@ -125,6 +126,8 @@ export default function SellerWizard() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [show, setShow] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [human, setHuman] = useState("");
+  const [resetKey, setResetKey] = useState(0);
   const [loc, setLoc] = useState<LocationData | null>(null);
 
   // Mahalle listesi sadece gerektiğinde yüklenir (sayfa hızlı açılsın)
@@ -196,9 +199,10 @@ export default function SellerWizard() {
 
   const submit = async () => {
     setLoading(true);
-    const res = await registerSeller(form);
+    const res = await registerSeller({ ...form, turnstile: human });
     if (!res.ok) {
       setLoading(false);
+      setResetKey((k) => k + 1);
       const errs = res.errors ?? {};
       setErrors(errs);
       const first = Math.min(...Object.keys(errs).map((k) => FIELD_STEP[k] ?? 7));
@@ -525,6 +529,7 @@ export default function SellerWizard() {
                 </span>
               </label>
               <Err msg={errors.kvkk} />
+              <Turnstile onToken={setHuman} resetKey={resetKey} />
               {errors.form && <p className="rounded-2xl bg-terra-500/10 px-4 py-3 font-medium text-terra-600">{errors.form}</p>}
             </>
           )}

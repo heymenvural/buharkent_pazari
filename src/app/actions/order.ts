@@ -8,6 +8,7 @@ import { isValidObjectId, trusted, Types } from "mongoose";
 import { auth } from "@/auth";
 import { connectDB } from "@/lib/db";
 import { rateLimit } from "@/lib/rateLimit";
+import { HUMAN_ERROR, verifyHuman } from "@/lib/turnstile";
 import { round2, shippingForPart, type PartStatus } from "@/lib/orders";
 import { lookupSchema, orderSchema } from "@/lib/validation/checkout";
 import { sendOrderPlacedEmail, sendSellerNewOrderEmail } from "@/lib/mailer";
@@ -48,7 +49,7 @@ const ip = async () =>
 /* ---------- Sipariş oluştur ---------- */
 export async function createOrder(input: unknown): Promise<OrderResult> {
   const clientIp = await ip();
-  if (!rateLimit(`order:${clientIp}`, 10, 60 * 60_000)) {
+  if (!await rateLimit(`order:${clientIp}`, 10, 60 * 60_000)) {
     return {
       ok: false,
       errors: {
@@ -57,6 +58,7 @@ export async function createOrder(input: unknown): Promise<OrderResult> {
     };
   }
 
+  if (!(await verifyHuman((input as { turnstile?: unknown } | null)?.turnstile, clientIp))) return { ok: false, errors: { form: HUMAN_ERROR } };
   const parsed = orderSchema.safeParse(input);
   if (!parsed.success) {
     const errors: Record<string, string> = {};
@@ -343,7 +345,7 @@ export async function lookupOrder(
   _: unknown,
   fd: FormData,
 ): Promise<{ error?: string }> {
-  if (!rateLimit(`lookup:${await ip()}`, 10, 15 * 60_000))
+  if (!await rateLimit(`lookup:${await ip()}`, 10, 15 * 60_000))
     return { error: "Çok fazla deneme yaptın. Biraz sonra tekrar dene." };
   const parsed = lookupSchema.safeParse({
     orderNo: fd.get("orderNo"),

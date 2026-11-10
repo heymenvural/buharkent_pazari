@@ -14,7 +14,7 @@ export async function POST(req: Request) {
   if (!user?.id || (user.role !== "seller" && user.role !== "admin")) {
     return NextResponse.json({ ok: false, error: "Bu işlem için giriş yapmalısın." }, { status: 401 });
   }
-  if (!rateLimit(`upload:${user.id}`, 20, 60 * 60_000)) {
+  if (!await rateLimit(`upload:${user.id}`, 20, 60 * 60_000)) {
     return NextResponse.json({ ok: false, error: "Çok fazla yükleme yaptın, biraz sonra tekrar dene." }, { status: 429 });
   }
 

@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle2, Flag, Loader2, X } from "lucide-react";
 import { reportListing } from "@/app/actions/report";
 import { REPORT_REASONS } from "@/lib/reports";
+import Turnstile from "@/components/ui/Turnstile";
 
 const ease = [0.76, 0, 0.24, 1] as const;
 
@@ -15,6 +16,8 @@ export default function ReportButton({ offerId, productName, sellerName }: { off
   const [email, setEmail] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [human, setHuman] = useState("");
+  const [resetKey, setResetKey] = useState(0);
   const [done, setDone] = useState(false);
 
   const close = () => {
@@ -42,9 +45,12 @@ export default function ReportButton({ offerId, productName, sellerName }: { off
   const submit = async () => {
     if (!reason) return setErrors({ reason: "Bir sebep seç" });
     setLoading(true);
-    const res = await reportListing({ offerId, reason, note, email });
+    const res = await reportListing({ offerId, reason, note, email, turnstile: human });
     setLoading(false);
-    if (!res.ok) return setErrors(res.errors ?? { form: "Bir sorun oluştu." });
+    if (!res.ok) {
+      setResetKey((k) => k + 1);
+      return setErrors(res.errors ?? { form: "Bir sorun oluştu." });
+    }
     setDone(true);
   };
 
@@ -112,6 +118,7 @@ export default function ReportButton({ offerId, productName, sellerName }: { off
                     {errors.email && <span className="text-sm font-medium text-terra-600">{errors.email}</span>}
                   </label>
 
+                  <Turnstile onToken={setHuman} resetKey={resetKey} className="mt-3" />
                   {errors.form && <p className="mt-3 rounded-2xl bg-terra-500/10 px-4 py-3 text-sm font-medium text-terra-600">{errors.form}</p>}
 
                   <button onClick={submit} disabled={loading} className="mt-5 flex min-h-[52px] w-full items-center justify-center gap-2 rounded-full bg-terra-500 font-semibold text-cream-50 hover:bg-terra-600 disabled:opacity-60">

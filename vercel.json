@@ -1,0 +1,3 @@
+{
+  "crons": [{ "path": "/api/cron/odenmeyen-siparisler", "schedule": "0 6 * * *" }]
+}

@@ -6,6 +6,7 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { connectDB } from "@/lib/db";
 import { rateLimit } from "@/lib/rateLimit";
+import { HUMAN_ERROR, verifyHuman } from "@/lib/turnstile";
 import { Listing } from "@/models/Listing";
 import { Product } from "@/models/Product";
 import { Report } from "@/models/Report";
@@ -25,9 +26,10 @@ const schema = z.object({
 
 export async function reportListing(input: unknown): Promise<{ ok: boolean; errors?: Record<string, string> }> {
   const ip = (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-  if (!rateLimit(`report:${ip}`, 5, 60 * 60_000)) {
+  if (!await rateLimit(`report:${ip}`, 5, 60 * 60_000)) {
     return { ok: false, errors: { form: "Çok fazla bildirim gönderdin. Biraz sonra tekrar dene." } };
   }
+  if (!(await verifyHuman((input as { turnstile?: unknown } | null)?.turnstile, ip))) return { ok: false, errors: { form: HUMAN_ERROR } };
   const parsed = schema.safeParse(input);
   if (!parsed.success) {
     const errors: Record<string, string> = {};

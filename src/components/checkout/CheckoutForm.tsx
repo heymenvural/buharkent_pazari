@@ -11,6 +11,7 @@ import { useCart, selectTotal, type CartItem } from "@/store/cart";
 import { formatPrice, offers, sellers } from "@/lib/catalog";
 import { shippingForPart } from "@/lib/orders";
 import { createOrder } from "@/app/actions/order";
+import Turnstile from "@/components/ui/Turnstile";
 import { checkoutSchema, type CheckoutInput } from "@/lib/validation/checkout";
 
 const ease = [0.76, 0, 0.24, 1] as const;
@@ -75,6 +76,8 @@ export default function CheckoutForm() {
   const [form, setForm] = useState<CheckoutInput>(initial);
   const [errors, setErrors] = useState<Errors>({});
   const [loading, setLoading] = useState(false);
+  const [human, setHuman] = useState("");
+  const [resetKey, setResetKey] = useState(0);
   const [done, setDone] = useState(false);
   const items = useCart((s) => s.items);
   const subtotal = useCart(selectTotal);
@@ -136,6 +139,7 @@ export default function CheckoutForm() {
 
     setLoading(true);
     const res = await createOrder({
+      turnstile: human,
       form: { ...form, payment },
       items: items
         .filter((i) => i.offerId && i.variantId)
@@ -144,6 +148,7 @@ export default function CheckoutForm() {
 
     if (!res.ok) {
       setLoading(false);
+      setResetKey((k) => k + 1);
       // Fiyat/stok değiştiyse sepet sunucudaki doğru bilgilerle güncellenir
       res.fixes?.forEach((f) => {
         const id = `${f.offerId}:${f.variantId}`;
@@ -342,6 +347,7 @@ export default function CheckoutForm() {
               </div>
             </div>
 
+            <Turnstile onToken={setHuman} resetKey={resetKey} className="mt-5 flex justify-center" />
             <button
               type="submit"
               form="checkout-form"
