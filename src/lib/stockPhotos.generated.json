@@ -1,5 +1,20 @@
 {
   "urun": {},
-  "tur": {},
-  "kategori": {}
+  "tur": {
+    "ahsap-dekor": "/gorseller/tur/ahsap-dekor.webp",
+    "bal": "/gorseller/tur/bal.webp",
+    "incir-cipsi": "/gorseller/tur/incir-cipsi.webp",
+    "kuru-meyve": "/gorseller/tur/kuru-meyve.webp",
+    "orgu-dokuma": "/gorseller/tur/orgu-dokuma.webp",
+    "recel-pekmez-salca": "/gorseller/tur/recel-pekmez-salca.webp",
+    "sofralik-zeytin": "/gorseller/tur/sofralik-zeytin.webp",
+    "taki-aksesuar": "/gorseller/tur/taki-aksesuar.webp",
+    "tarhana-eriste": "/gorseller/tur/tarhana-eriste.webp",
+    "taze-meyve-sebze": "/gorseller/tur/taze-meyve-sebze.webp",
+    "yumurta": "/gorseller/tur/yumurta.webp",
+    "zeytinyagi": "/gorseller/tur/zeytinyagi.webp"
+  },
+  "kategori": {
+    "hediye-kutulari": "/gorseller/kategori/hediye-kutulari.webp"
+  }
 }
