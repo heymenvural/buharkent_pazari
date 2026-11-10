@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowUp, ArrowRight, AtSign, Mail, MapPin, Phone } from "lucide-react";
@@ -14,6 +15,7 @@ const cols = [
     title: "Alışveriş",
     links: [
       { label: "Tüm Ürünler", href: "/urunler" },
+      { label: "Canlı Pazar (3D)", href: "/canli-pazar" },
       { label: "İncir & Kuru Ürünler", href: "/kategori/incir-kuru-urunler" },
       { label: "Zeytinyağı", href: "/kategori/zeytin-zeytinyagi" },
       { label: "Bal & Pekmez", href: "/kategori/bal-recel-pekmez" },
@@ -35,6 +37,8 @@ const cols = [
 export default function Footer() {
   const lenis = useLenis();
   const [sent, setSent] = useState(false);
+  const pathname = usePathname();
+  if (pathname === "/canli-pazar") return null;
 
   return (
     <footer id="iletisim" className="relative overflow-hidden bg-olive-900 text-cream-50">

@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { AnimatePresence, motion, useMotionValueEvent, useScroll } from "framer-motion";
-import { ChevronDown, LayoutGrid, Menu, Search, ShoppingBag, User, X } from "lucide-react";
+import { ChevronDown, Footprints, LayoutGrid, Menu, Search, ShoppingBag, User, X } from "lucide-react";
 import { useLenis } from "lenis/react";
 import { useCart, selectCount } from "@/store/cart";
 import { useUI } from "@/store/ui";
@@ -21,6 +21,7 @@ const messages = [
 ];
 
 const extraLinks = [
+  { href: "/canli-pazar", label: "Canlı Pazar (3D)" },
   { href: "/ureticiler", label: "Üreticiler" },
   { href: "/hakkimizda", label: "Hakkımızda" },
   { href: "/uretici-ol", label: "Üretici Ol" },
@@ -116,6 +117,9 @@ export default function Navbar() {
     lenis?.start();
   };
 
+  // Canlı Pazar tam ekran çalışır, kendi menüsü var
+  if (pathname === "/canli-pazar") return null;
+
   return (
     <>
       <motion.div
@@ -184,6 +188,18 @@ export default function Navbar() {
                 )}
               </AnimatePresence>
             </div>
+
+            <Link
+              href="/canli-pazar"
+              className="hidden shrink-0 items-center gap-2 rounded-full bg-terra-500/10 px-4 py-2.5 text-sm font-semibold text-terra-600 transition-colors hover:bg-terra-500/20 lg:flex"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-terra-500 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-terra-500" />
+              </span>
+              <Footprints className="h-4 w-4" />
+              Canlı Pazar
+            </Link>
 
             <SearchBox className="hidden max-w-xl flex-1 md:block" />
 
