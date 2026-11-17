@@ -10,6 +10,10 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // İletişim e-postası ayrıca girilmediyse sitenin e-posta gönderdiği adres kullanılır
+  env: {
+    NEXT_PUBLIC_CONTACT_EMAIL: process.env.NEXT_PUBLIC_CONTACT_EMAIL || process.env.CONTACT_EMAIL || process.env.GMAIL_USER || "",
+  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "res.cloudinary.com" },

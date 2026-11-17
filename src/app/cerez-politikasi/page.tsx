@@ -51,7 +51,7 @@ const sections: Section[] = [
     title: "Çerezleri nasıl yönetebilirsiniz?",
     blocks: [
       "Tarayıcınızın ayarlarından çerezleri silebilir veya engelleyebilirsiniz. Zorunlu çerezleri engellemeniz halinde giriş yapma ve sepet gibi özellikler çalışmayabilir.",
-      `Sorularınız için: ${ORG.email}`,
+      `Sorularınız için: ${ORG.email || ORG.phone}`,
     ],
   },
 ];

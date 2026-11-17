@@ -274,7 +274,7 @@ export default function CheckoutForm() {
               </p>
             )}
             <p className="mt-4 flex items-center gap-2 text-xs text-muted">
-              <Lock className="h-3.5 w-3.5" /> Kredi kartı ile güvenli ödeme çok yakında.
+              <Lock className="h-3.5 w-3.5" /> BUHARYEG ödeme almaz; paran doğrudan üreticinin hesabına gider.
             </p>
           </Card>
 

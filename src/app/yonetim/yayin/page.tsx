@@ -4,7 +4,7 @@ import { trusted } from "mongoose";
 import { CheckCircle2, CircleAlert, CircleDashed } from "lucide-react";
 import { auth } from "@/auth";
 import { connectDB } from "@/lib/db";
-import { ORG, isPlaceholder } from "@/lib/legal";
+import { ORG, hasFullAddress, isPlaceholder } from "@/lib/legal";
 import { Listing } from "@/models/Listing";
 import { Review } from "@/models/Review";
 import { SellerProfile } from "@/models/SellerProfile";
@@ -35,7 +35,8 @@ export default async function LaunchPage() {
     adminCounts(),
   ]);
 
-  const legalMissing = (["address", "email", "phone", "registryNo"] as const).filter((k) => isPlaceholder(ORG[k]));
+  const legalMissing = (["email", "phone", "registryNo"] as const).filter((k) => isPlaceholder(ORG[k])) as string[];
+  if (!hasFullAddress()) legalMissing.unshift("address");
 
   const groups: { title: string; items: Check[] }[] = [
     {
@@ -54,7 +55,7 @@ export default async function LaunchPage() {
     {
       title: "İçerik",
       items: [
-        { label: "Yasal metinlerdeki dernek bilgileri", ok: legalMissing.length === 0, hint: legalMissing.length ? `Eksik: ${legalMissing.map((k) => ({ address: "adres", email: "e-posta", phone: "telefon", registryNo: "kütük no" })[k]).join(", ")}.` : "Tamam." },
+        { label: "Yasal metinlerdeki dernek bilgileri", ok: legalMissing.length === 0, hint: legalMissing.length ? `Eksik: ${legalMissing.map((k) => ({ address: "açık adres (Vercel: NEXT_PUBLIC_ORG_ADDRESS)", email: "e-posta (Vercel: NEXT_PUBLIC_CONTACT_EMAIL)", phone: "telefon", registryNo: "kütük no" } as Record<string, string>)[k]).join(", ")}.` : "Tamam." },
         { label: "Onaylı gerçek üretici", ok: realSellers > 0, hint: `${realSellers} üretici onaylı.` },
         { label: "Yayında gerçek ilan", ok: realListings > 0, hint: `${realListings} ilan yayında.` },
       ],

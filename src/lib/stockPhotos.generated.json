@@ -1,5 +1,9 @@
 {
-  "urun": {},
+  "urun": {
+    "ev-yapimi-domates-salcasi": "/gorseller/urun/ev-yapimi-domates-salcasi.webp",
+    "gun-kurusu-uzum-pekmezi": "/gorseller/urun/gun-kurusu-uzum-pekmezi.webp",
+    "incir-receli": "/gorseller/urun/incir-receli.webp"
+  },
   "tur": {
     "ahsap-dekor": "/gorseller/tur/ahsap-dekor.webp",
     "bal": "/gorseller/tur/bal.webp",

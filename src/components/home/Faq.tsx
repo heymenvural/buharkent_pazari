@@ -8,28 +8,28 @@ const ease = [0.76, 0, 0.24, 1] as const;
 
 const faqs = [
   {
-    q: "Ürünler gerçekten Buharkent'te mi üretiliyor?",
-    a: "Evet. Sitedeki tüm üreticiler Buharkent'te yaşayan ve üretim yapan, BUHARYEG tarafından tek tek doğrulanan kadın girişimciler ve genç çiftçilerdir.",
+    q: "Ürünler gerçekten yerel üreticilerden mi geliyor?",
+    a: "Evet. Sitede yalnızca kendi ürettiğini satan üreticiler yer alır; aracı ya da tüccar yoktur. Her üreticinin başvurusu ve belgeleri BUHARYEG tarafından tek tek incelenir.",
   },
   {
     q: "Üye olmadan alışveriş yapabilir miyim?",
-    a: "Elbette. Ürünleri sepete ekleyip misafir olarak sipariş verebilirsiniz. Üye olursanız siparişlerinizi ve kargo takibini tek yerden izleyebilirsiniz.",
+    a: "Evet. Ürünleri sepete ekleyip misafir olarak sipariş verebilirsin. Üye olursan tüm siparişlerini tek yerden izlersin; üye olmadan da Sipariş Takip sayfasından sipariş numaranla bakabilirsin.",
+  },
+  {
+    q: "Ödemeyi kime yapıyorum?",
+    a: "Doğrudan üreticiye. Sipariş verdikten sonra her üreticinin IBAN'ını ve tutarı görürsün, havale/EFT ile ödersin. Bazı üreticiler kapıda ödemeyi de kabul eder. BUHARYEG hiçbir ödeme almaz ve komisyon kesmez.",
   },
   {
     q: "Kargo nasıl çalışıyor?",
-    a: "Her üretici kendi ürününü özenle paketleyip kargoya verir. Kargo ücreti ürün sayfasında belirtilir, takip numarası hesabınıza ve e-postanıza iletilir.",
-  },
-  {
-    q: "Hangi ödeme yöntemlerini kullanabilirim?",
-    a: "Şu an havale/EFT ile ödeme alıyoruz. Güvenli kredi kartı ile ödeme seçeneği çok yakında aktif olacak.",
+    a: "Her üretici kendi ürününü paketleyip kargoya verir. Kargo ücretini üretici belirler ve sipariş sırasında görürsün. Kargo firması ve takip numarası sipariş sayfana ve e-postana gelir.",
   },
   {
     q: "Ürün beklediğim gibi çıkmazsa ne olur?",
-    a: "Mesafeli satış mevzuatı kapsamındaki tüm haklarınız saklıdır. Bize yazmanız yeterli; üreticiyle birlikte en kısa sürede çözüm buluruz.",
+    a: "Mesafeli satış mevzuatındaki tüm hakların geçerlidir; çabuk bozulan gıdalar dışında 14 gün içinde cayma hakkın vardır. Önce siparişindeki üreticiyle iletişime geç. Çözülmezse ürün sayfasındaki 'Bildir' butonuyla bize haber ver.",
   },
   {
     q: "Ben de üretici olabilir miyim?",
-    a: "Buharkent'te üretim yapıyorsanız başvuru formunu doldurun. Ekibimiz sizinle iletişime geçip mağazanızı açmanıza yardımcı olur.",
+    a: "Aydın, Denizli veya Muğla'da kendi ürününü üretiyorsan 'Üretici Ol' sayfasından başvurabilirsin. Başvurun onaylanınca panelinden ürünlerini kendin eklersin.",
   },
 ];
 

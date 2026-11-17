@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import LegalPage, { type Section } from "@/components/legal/LegalPage";
-import { ORG } from "@/lib/legal";
+import { contactChannel, ORG } from "@/lib/legal";
 
 export const metadata: Metadata = { title: "KVKK Aydınlatma Metni" };
 
@@ -10,7 +10,7 @@ const sections: Section[] = [
     title: "Veri sorumlusu",
     blocks: [
       `6698 sayılı Kişisel Verilerin Korunması Kanunu ("KVKK") uyarınca kişisel verileriniz, veri sorumlusu sıfatıyla ${ORG.name} ("Dernek") tarafından, ${ORG.platform} platformu ("Platform") aracılığıyla aşağıda açıklanan kapsamda işlenmektedir.`,
-      `Adres: ${ORG.address} · E-posta: ${ORG.email} · Telefon: ${ORG.phone}`,
+      `Dernek kütük no: ${ORG.registryNo} · Adres: ${ORG.address}${ORG.email ? ` · E-posta: ${ORG.email}` : ""} · Telefon: ${ORG.phone}`,
     ],
   },
   {
@@ -105,7 +105,7 @@ const sections: Section[] = [
     id: "basvuru",
     title: "Başvuru yöntemi",
     blocks: [
-      `Taleplerinizi, kimliğinizi tespit edici bilgilerle birlikte ${ORG.email} adresine e-posta göndererek veya ${ORG.address} adresine yazılı olarak iletebilirsiniz.`,
+      `Taleplerinizi, kimliğinizi tespit edici bilgilerle birlikte ${contactChannel()} yazarak veya ${ORG.address} adresine yazılı olarak iletebilirsiniz.`,
       "Başvurunuz, talebin niteliğine göre en kısa sürede ve en geç otuz gün içinde ücretsiz olarak sonuçlandırılır. İşlemin ayrıca bir maliyet gerektirmesi halinde Kişisel Verileri Koruma Kurulu tarafından belirlenen tarifedeki ücret alınabilir.",
     ],
   },

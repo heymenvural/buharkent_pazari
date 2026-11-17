@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import LegalPage, { type Section } from "@/components/legal/LegalPage";
-import { ORG } from "@/lib/legal";
+import { contactChannel, ORG } from "@/lib/legal";
 
 export const metadata: Metadata = { title: "Mesafeli Satış Sözleşmesi" };
 
@@ -11,7 +11,7 @@ const sections: Section[] = [
     blocks: [
       "SATICI: Siparişe konu ürünü üreten ve satan üretici. Satıcının adı ve iletişim bilgileri ürün sayfasında ve sipariş özetinde ayrıca belirtilir.",
       "ALICI: Platform üzerinden sipariş veren gerçek kişi.",
-      `ARACI HİZMET SAĞLAYICI: ${ORG.name} (${ORG.short}), ${ORG.address}, ${ORG.email}. Dernek, 6563 sayılı Elektronik Ticaretin Düzenlenmesi Hakkında Kanun kapsamında Satıcı ile Alıcı arasında aracılık hizmeti sunar; satışa konu ürünlerin satıcısı değildir.`,
+      `ARACI HİZMET SAĞLAYICI: ${ORG.name} (${ORG.short}), Dernek kütük no: ${ORG.registryNo}, ${ORG.address}${ORG.email ? `, ${ORG.email}` : ""}, ${ORG.phone}. Dernek, 6563 sayılı Elektronik Ticaretin Düzenlenmesi Hakkında Kanun kapsamında Satıcı ile Alıcı arasında aracılık hizmeti sunar; satışa konu ürünlerin satıcısı değildir.`,
     ],
   },
   {
@@ -49,7 +49,7 @@ const sections: Section[] = [
     title: "Cayma hakkı",
     blocks: [
       "Alıcı, ürünü teslim aldığı tarihten itibaren on dört gün içinde herhangi bir gerekçe göstermeksizin ve cezai şart ödemeksizin sözleşmeden cayma hakkına sahiptir.",
-      `Cayma hakkının kullanılması için bu süre içinde ${ORG.email} adresine yazılı bildirimde bulunulması yeterlidir. Ürün bedeli, cayma bildiriminin ulaşmasından itibaren on dört gün içinde iade edilir.`,
+      `Cayma hakkının kullanılması için bu süre içinde Satıcıya ya da ${contactChannel()} yazılı bildirimde bulunulması yeterlidir. Ürün bedeli, cayma bildiriminin ulaşmasından itibaren on dört gün içinde iade edilir.`,
     ],
   },
   {

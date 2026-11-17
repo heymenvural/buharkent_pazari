@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import LegalPage, { type Section } from "@/components/legal/LegalPage";
-import { ORG } from "@/lib/legal";
+import { contactChannel, ORG } from "@/lib/legal";
 
 export const metadata: Metadata = { title: "Gizlilik Politikası" };
 
@@ -81,7 +81,7 @@ const sections: Section[] = [
     id: "hesap-silme",
     title: "Hesabınızı silme",
     blocks: [
-      `Hesabınızın ve bilgilerinizin silinmesini istediğinizde ${ORG.email} adresine yazmanız yeterlidir. Yasal olarak saklanması zorunlu kayıtlar dışındaki bilgileriniz silinir.`,
+      `Hesabınızın ve bilgilerinizin silinmesini istediğinizde ${contactChannel()} yazmanız yeterlidir. Yasal olarak saklanması zorunlu kayıtlar dışındaki bilgileriniz silinir.`,
     ],
   },
   {
@@ -94,7 +94,7 @@ const sections: Section[] = [
     title: "Değişiklikler ve iletişim",
     blocks: [
       "Bu politika gerektiğinde güncellenebilir; güncel sürüm her zaman bu sayfada yayımlanır.",
-      `Sorularınız için: ${ORG.email} · ${ORG.phone}`,
+      `Sorularınız için: ${[ORG.email, ORG.phone].filter(Boolean).join(" · ")}`,
     ],
   },
 ];
