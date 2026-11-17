@@ -18,6 +18,8 @@ const adminEmails = () =>
     .filter(Boolean);
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  // Vercel dışında (ör. Netlify) da çalışsın; adres AUTH_URL'den alınır
+  trustHost: true,
   session: { strategy: "jwt", maxAge: 60 * 60 * 24 * 30 },
   pages: { signIn: "/giris", error: "/giris" },
   providers: [

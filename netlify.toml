@@ -1,0 +1,8 @@
+# Netlify'a taşınırsa kullanılır (Vercel bu dosyayı yok sayar).
+# Netlify Next.js'i otomatik tanır; burada sadece Node sürümü ve derleme komutu sabitleniyor.
+[build]
+  command = "npm run build"
+
+[build.environment]
+  NODE_VERSION = "22"
+  NEXT_TELEMETRY_DISABLED = "1"

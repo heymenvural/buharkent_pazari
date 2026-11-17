@@ -1,0 +1,24 @@
+name: Günlük görevler
+
+# Barındırma servisinden bağımsız: süresi geçen havaleli siparişleri iptal eden adresi her sabah çağırır.
+# Site adresi değişirse: Settings → Secrets and variables → Actions → Variables → SITE_URL
+on:
+  schedule:
+    - cron: "15 6 * * *" # her gün 09:15 (Türkiye saati)
+  workflow_dispatch: {}
+
+permissions: {}
+
+jobs:
+  odenmeyen-siparisler:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ödenmeyen siparişleri kontrol et
+        env:
+          SITE_URL: ${{ vars.SITE_URL || 'https://buharkent-pazari.vercel.app' }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          code=$(curl -s -o out.json -w "%{http_code}" -H "Authorization: Bearer ${CRON_SECRET}" "${SITE_URL%/}/api/cron/odenmeyen-siparisler")
+          cat out.json; echo
+          test "$code" = "200"
