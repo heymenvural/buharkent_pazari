@@ -1,8 +1,10 @@
 name: Veritabanı yedeği
 
 on:
-  schedule:
-    - cron: "30 0 * * *" # her gece 03:30 (Türkiye saati)
+  # Zamanlama geçici olarak kapalı (GitHub hesap kilidi çözülünce açılacak).
+  # Açmak için aşağıdaki iki satırın başındaki # işaretini kaldır.
+  # schedule:
+  #   - cron: "30 0 * * *" # her gece 03:30 (Türkiye saati)
   workflow_dispatch: {} # Actions sekmesinden elle de çalıştırılabilir
 
 permissions:

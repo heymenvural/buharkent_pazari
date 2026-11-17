@@ -3,8 +3,10 @@ name: Günlük görevler
 # Barındırma servisinden bağımsız: süresi geçen havaleli siparişleri iptal eden adresi her sabah çağırır.
 # Site adresi değişirse: Settings → Secrets and variables → Actions → Variables → SITE_URL
 on:
-  schedule:
-    - cron: "15 6 * * *" # her gün 09:15 (Türkiye saati)
+  # Zamanlama geçici olarak kapalı (GitHub hesap kilidi çözülünce açılacak).
+  # Açmak için aşağıdaki iki satırın başındaki # işaretini kaldır.
+  # schedule:
+  #   - cron: "15 6 * * *" # her gün 09:15 (Türkiye saati)
   workflow_dispatch: {}
 
 permissions: {}
