@@ -79,6 +79,7 @@ export default function ProductDetail({ slug, initialSeller }: { slug: string; i
 
   const addCurrent = () => {
     if (!current || current.variant.stock === 0) return;
+    if (current.offer.demo) return;
     add(toCartItem(product, current), Math.min(qty, current.variant.stock));
     if (imgRef.current) flyToCart(imgRef.current);
     setAdded(true);
@@ -250,14 +251,24 @@ export default function ProductDetail({ slug, initialSeller }: { slug: string; i
               </div>
               <button
                 onClick={addCurrent}
-                className="flex flex-1 items-center justify-center gap-2 rounded-full bg-olive-700 px-6 py-4 font-semibold text-cream-50 transition-colors hover:bg-olive-900"
+                disabled={!!current.offer.demo}
+                className="flex flex-1 items-center justify-center gap-2 rounded-full bg-olive-700 px-6 py-4 font-semibold text-cream-50 transition-colors hover:bg-olive-900 disabled:bg-sand-400"
               >
                 {added ? <Check className="h-5 w-5" /> : <ShoppingBag className="h-5 w-5" />}
                 <span className="truncate">
-                  {added ? "Sepete eklendi" : `${current.seller.name}'ndan ekle · ${formatPrice(current.variant.price * qty)}`}
+                  {current.offer.demo
+                    ? "Örnek ürün · satın alınamaz"
+                    : added
+                      ? "Sepete eklendi"
+                      : `${current.seller.name}'ndan ekle · ${formatPrice(current.variant.price * qty)}`}
                 </span>
               </button>
             </div>
+          )}
+          {current?.offer.demo && (
+            <p className="mt-3 rounded-2xl bg-[#e0a84a]/20 px-4 py-3 text-sm text-olive-900">
+              <b>Örnek ürün.</b> Bu üretici ve ürün, sitenin nasıl çalıştığını göstermek için eklenmiş bir prototiptir; satın alınamaz.
+            </p>
           )}
           {current && current.variant.oldPrice && (
             <p className="mt-3 text-sm font-semibold text-terra-600">
@@ -403,11 +414,11 @@ export default function ProductDetail({ slug, initialSeller }: { slug: string; i
             </div>
             <button
               onClick={addCurrent}
-              disabled={current.variant.stock === 0}
+              disabled={current.variant.stock === 0 || !!current.offer.demo}
               className="flex flex-1 items-center justify-center gap-2 rounded-full bg-olive-700 py-3 font-semibold text-cream-50 disabled:bg-sand-400"
             >
               {added ? <Check className="h-5 w-5" /> : <ShoppingBag className="h-5 w-5" />}
-              {added ? "Eklendi" : `Ekle · ${formatPrice(current.variant.price * qty)}`}
+              {current.offer.demo ? "Örnek ürün" : added ? "Eklendi" : `Ekle · ${formatPrice(current.variant.price * qty)}`}
             </button>
           </div>
         </div>

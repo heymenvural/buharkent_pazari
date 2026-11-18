@@ -11,6 +11,8 @@ import { SellerProfile } from "@/models/SellerProfile";
 import { User } from "@/models/User";
 import AdminNav from "@/components/admin/AdminNav";
 import DemoCleaner from "@/components/admin/DemoCleaner";
+import DemoPanel, { type DemoSeller } from "@/components/admin/DemoPanel";
+import { getDemoMode } from "@/lib/demo.server";
 import { adminCounts } from "@/lib/data/admin.server";
 
 export const metadata: Metadata = { title: "Yayın kontrolü", robots: { index: false } };
@@ -34,6 +36,23 @@ export default async function LaunchPage() {
     Listing.countDocuments({ demo: trusted({ $ne: true }), status: "active" }),
     adminCounts(),
   ]);
+  const [demoMode, allProfiles, listingCounts] = await Promise.all([
+    getDemoMode(),
+    SellerProfile.find().select("user shopName demo").lean(),
+    Listing.aggregate<{ _id: unknown; n: number }>([{ $group: { _id: "$seller", n: { $sum: 1 } } }]),
+  ]);
+  const approvedIds = new Set(
+    (await User.find({ _id: trusted({ $in: allProfiles.map((p) => p.user) }), sellerStatus: "approved" }).select("_id").lean()).map((u) => u._id.toString())
+  );
+  const demoSellers: DemoSeller[] = allProfiles
+    .filter((p) => approvedIds.has(p.user.toString()))
+    .map((p) => ({
+      id: p.user.toString(),
+      name: p.shopName ?? "İsimsiz mağaza",
+      demo: !!p.demo,
+      listings: listingCounts.find((c) => String(c._id) === p.user.toString())?.n ?? 0,
+    }))
+    .sort((a, b) => Number(b.demo) - Number(a.demo) || a.name.localeCompare(b.name, "tr"));
 
   const legalMissing = (["email", "phone", "registryNo"] as const).filter((k) => isPlaceholder(ORG[k])) as string[];
   if (!hasFullAddress()) legalMissing.unshift("address");
@@ -92,12 +111,19 @@ export default async function LaunchPage() {
           </section>
         ))}
 
-        <section className="mt-8">
-          <h2 className="text-2xl text-olive-900">Örnek veriler</h2>
+        <section className="mt-8" id="prototipler">
+          <h2 className="text-2xl text-olive-900">Prototipler (örnek üreticiler)</h2>
           <div className="mt-3 rounded-2xl border border-sand-300 bg-cream-50 p-5">
-            <DemoCleaner counts={{ sellers, listings, reviews }} />
+            <DemoPanel mode={demoMode} sellers={demoSellers} />
           </div>
         </section>
+
+        <details className="mt-8 rounded-2xl border border-sand-300 bg-cream-50 p-5">
+          <summary className="cursor-pointer font-semibold text-ink">Prototipleri kalıcı olarak sil</summary>
+          <div className="mt-4">
+            <DemoCleaner counts={{ sellers, listings, reviews }} />
+          </div>
+        </details>
       </div>
     </main>
   );

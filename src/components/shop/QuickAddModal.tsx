@@ -181,11 +181,12 @@ export default function QuickAddModal({
                   </button>
                 </div>
                 <button
-                  onClick={() => onAdd(current, qty)}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-full bg-olive-700 py-3.5 font-semibold text-cream-50 transition-colors hover:bg-olive-900"
+                  onClick={() => !current.offer.demo && onAdd(current, qty)}
+                  disabled={!!current.offer.demo}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-full bg-olive-700 py-3.5 font-semibold text-cream-50 transition-colors hover:bg-olive-900 disabled:bg-sand-400"
                 >
                   <ShoppingBag className="h-5 w-5" />
-                  Sepete ekle · {formatPrice(current.variant.price * qty)}
+                  {current.offer.demo ? "Örnek ürün · satın alınamaz" : <>Sepete ekle · {formatPrice(current.variant.price * qty)}</>}
                 </button>
               </div>
             )}

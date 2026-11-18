@@ -107,8 +107,7 @@ export default function Stall({ s, lowDetail }: { s: StallInfo; lowDetail: boole
     e.stopPropagation();
     const st = useMarket.getState();
     if (!st.started || st.dragDistance > 8) return; // sürükleme tıklama sayılmaz
-    const yaw = s.side === -1 ? 1.15 : -1.15;
-    st.goTo(s.z + 1.2, yaw);
+    st.goTo(s.stand.x, s.stand.z, s.stand.yaw);
     st.set({ selected: s.key });
   };
 

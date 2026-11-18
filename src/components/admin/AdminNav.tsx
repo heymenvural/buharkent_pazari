@@ -7,7 +7,7 @@ const links = [
   { href: "/yonetim/siparisler", label: "Siparişler", icon: Receipt },
   { href: "/yonetim/bildirimler", label: "Bildirimler", icon: Flag },
   { href: "/yonetim/yorumlar", label: "Yorumlar", icon: MessageSquare },
-  { href: "/yonetim/yayin", label: "Yayın kontrolü", icon: Rocket },
+  { href: "/yonetim/yayin", label: "Yayın & prototip", icon: Rocket },
 ];
 
 export default function AdminNav({ active, counts }: { active: string; counts?: Record<string, number> }) {

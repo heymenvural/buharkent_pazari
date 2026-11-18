@@ -9,7 +9,7 @@ import { ChevronDown, Footprints, LayoutGrid, Menu, Search, ShoppingBag, User, X
 import { useLenis } from "lenis/react";
 import { useCart, selectCount } from "@/store/cart";
 import { useUI } from "@/store/ui";
-import { categories } from "@/lib/catalog";
+import { categories, sellers } from "@/lib/catalog";
 
 const ANNOUNCEMENT = "Komisyon yok · Ödemeni doğrudan üreticiye yaparsın";
 
@@ -105,7 +105,11 @@ export default function Navbar() {
     <>
       <div className="fixed inset-x-0 top-0 z-50">
         <header className={`border-b border-sand-300 bg-cream-50 transition-shadow ${scrolled ? "shadow-soft" : ""}`}>
-          <p className="truncate bg-olive-900 px-4 py-1.5 text-center text-[13px] font-medium text-cream-50">{ANNOUNCEMENT}</p>
+          {sellers.some((x) => x.demo) ? (
+            <p className="truncate bg-[#e0a84a] px-4 py-1.5 text-center text-[13px] font-semibold text-ink">Tanıtım modu: örnek üreticiler gösteriliyor, bu ürünler satın alınamaz</p>
+          ) : (
+            <p className="truncate bg-olive-900 px-4 py-1.5 text-center text-[13px] font-medium text-cream-50">{ANNOUNCEMENT}</p>
+          )}
 
           <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 md:h-[72px] md:gap-5 md:px-8">
             <Link href="/" onClick={close} className="flex shrink-0 items-center gap-2">

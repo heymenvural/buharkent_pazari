@@ -9,6 +9,7 @@ import { Order } from "@/models/Order";
 import { Review } from "@/models/Review";
 import { SellerProfile } from "@/models/SellerProfile";
 import { User } from "@/models/User";
+import { setDemoMode } from "@/lib/demo.server";
 
 type Result = { ok: boolean; error?: string; removed?: Record<string, number> };
 
@@ -38,4 +39,29 @@ export async function clearDemoData(confirm: string): Promise<Result> {
   updateTag("catalog");
   revalidatePath("/", "layout");
   return { ok: true, removed: { yorum: r.deletedCount, ilan: l.deletedCount, sipariş: o.deletedCount, üretici: s.deletedCount, hesap: u.deletedCount } };
+}
+
+/** Prototipleri göster/gizle. hours: null = süresiz */
+export async function toggleDemo(on: boolean, hours: number | null): Promise<Result & { until?: string | null }> {
+  const session = await auth();
+  if (session?.user?.role !== "admin") return { ok: false, error: "Bu işlem için yetkin yok." };
+  if (hours !== null && (!Number.isFinite(hours) || hours <= 0 || hours > 24 * 30)) return { ok: false, error: "Geçersiz süre." };
+  const r = await setDemoMode(on, hours);
+  updateTag("catalog");
+  revalidatePath("/", "layout");
+  return { ok: true, until: r.until };
+}
+
+/** Bir üreticiyi (ve ilanlarını) prototip olarak işaretle ya da gerçek üreticiye çevir */
+export async function setSellerDemo(userId: string, demo: boolean): Promise<Result> {
+  const session = await auth();
+  if (session?.user?.role !== "admin") return { ok: false, error: "Bu işlem için yetkin yok." };
+  if (!/^[a-f0-9]{24}$/.test(userId)) return { ok: false, error: "Geçersiz istek." };
+  await connectDB();
+  const r = await SellerProfile.updateOne({ user: userId }, { demo });
+  if (!r.matchedCount) return { ok: false, error: "Üretici bulunamadı." };
+  await Listing.updateMany({ seller: userId }, { demo });
+  updateTag("catalog");
+  revalidatePath("/yonetim/yayin");
+  return { ok: true };
 }

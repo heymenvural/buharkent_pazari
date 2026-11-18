@@ -131,6 +131,8 @@ export async function createOrder(input: unknown): Promise<OrderResult> {
         product &&
         product.active &&
         listing.status === "active" &&
+        !listing.demo &&
+        !profiles.find((p) => p.user.toString() === listing.seller.toString())?.demo &&
         seller?.sellerStatus === "approved";
       if (!available) {
         fixes.push({

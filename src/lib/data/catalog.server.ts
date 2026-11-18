@@ -9,6 +9,7 @@ import { SellerDocument } from "@/models/SellerDocument";
 import type { DocKey } from "@/lib/compliance";
 import { toWaNumber } from "@/lib/whatsapp";
 import { productPhotos } from "@/lib/stockPhotos";
+import { getDemoMode } from "@/lib/demo.server";
 import { hydrateCatalog, type CatalogData, type SellerType } from "@/lib/catalog";
 
 const empty: CatalogData = { products: [], sellers: [], offers: [], reviews: [] };
@@ -33,7 +34,8 @@ const typeLabel = (t: string): SellerType =>
 
 async function load(): Promise<CatalogData> {
   await connectDB();
-  const [products, listings, profiles, reviews, docs] = await Promise.all([
+  const demo = await getDemoMode();
+  const [products, allListings, allProfiles, reviews, docs] = await Promise.all([
     Product.find({ active: true }).lean(),
     Listing.find({ status: "active" }).lean(),
     SellerProfile.find()
@@ -46,6 +48,10 @@ async function load(): Promise<CatalogData> {
     Review.find({ status: "published" }).sort({ createdAt: -1 }).limit(1000).lean(),
     SellerDocument.find({ status: "approved" }).select("user docKey").lean(),
   ]);
+
+  // Prototipler sadece yönetici "göster" dediyse listelenir
+  const profiles = demo.on ? allProfiles : allProfiles.filter((p) => !p.demo);
+  const listings = demo.on ? allListings : allListings.filter((l) => !l.demo);
 
   // Sadece onaylı ve mağaza adresi olan üreticiler ile onların aktif ilanları gösterilir
   const approved = profiles.filter((p) => p.user && p.user.sellerStatus === "approved" && p.slug);
@@ -95,6 +101,7 @@ async function load(): Promise<CatalogData> {
         ...(p.freeShippingOver ? { freeShippingOver: p.freeShippingOver } : {}),
         ...(p.codEnabled ? { cod: true } : {}),
         ...(p.askEnabled && toWaNumber(p.phone) ? { whatsapp: toWaNumber(p.phone)! } : {}),
+        ...(p.demo ? { demo: true } : {}),
         badges: docs.filter((d) => d.user.toString() === uid).map((d) => BADGE[d.docKey]).filter((b): b is string => !!b),
       };
     }),
@@ -117,6 +124,7 @@ async function load(): Promise<CatalogData> {
       note: l.note,
       details: l.details.map((d) => [d.k, d.v] as [string, string]),
       images: l.images ?? [],
+      ...(l.demo || profiles.find((p) => p.user?._id.toString() === l.seller.toString())?.demo ? { demo: true } : {}),
     })),
     reviews: reviews
       .filter((r) => listingIds.has(r.listing.toString()))
@@ -131,7 +139,7 @@ async function load(): Promise<CatalogData> {
   };
 }
 
-const cached = unstable_cache(load, ["catalog-snapshot-v4"], { revalidate: 60, tags: ["catalog"] });
+const cached = unstable_cache(load, ["catalog-snapshot-v5"], { revalidate: 60, tags: ["catalog"] });
 
 export async function getCatalogSnapshot(): Promise<CatalogData> {
   try {

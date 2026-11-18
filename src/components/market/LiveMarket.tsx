@@ -10,8 +10,9 @@ import {
 import { catalog, offers, sellers } from "@/lib/catalog";
 import { useCart, selectCount } from "@/store/cart";
 import { useUI } from "@/store/ui";
-import { buildStalls } from "./layout";
+import { buildMarket, toWorld } from "./layout";
 import { START_Z, useMarket } from "./store";
+import MiniMap from "./MiniMap";
 import StallSheet from "./StallSheet";
 
 const Scene = dynamic(() => import("./Scene"), { ssr: false });
@@ -70,13 +71,17 @@ export default function LiveMarket() {
   const count = useCart(selectCount);
   const openCart = useUI((s) => s.openCart);
 
-  const stalls = useMemo(() => buildStalls(sellers, offers, catalog), []);
+  const plan = useMemo(() => buildMarket(sellers, offers, catalog), []);
+  const stalls = plan.stalls;
+  const streetId = useMarket((s) => s.street);
+  const jump = useMarket((s) => s.jump);
+  const streetName = plan.streets.find((s) => s.id === streetId)?.name ?? "Ana Cadde";
   const near = stalls.find((s) => s.key === nearKey) ?? null;
   const selected = stalls.find((s) => s.key === selectedKey) ?? null;
 
   useEffect(() => {
     // Sayfa her açıldığında pazarın girişinden başla
-    useMarket.setState({ started: false, selected: null, near: null, hovered: null, targetYaw: 0, targetZ: START_Z });
+    useMarket.setState({ started: false, selected: null, near: null, hovered: null, street: null, targetYaw: 0, targetX: 0, targetZ: START_Z });
     // Tabela yazıları doğru yazı tipiyle çizilsin
     Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 2500))]).then(() => setFontsReady(true));
     const prev = document.body.style.overflow;
@@ -96,7 +101,7 @@ export default function LiveMarket() {
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       const d = e.deltaMode === 1 ? e.deltaY * 30 : e.deltaY;
-      st().walk(-Math.max(-2, Math.min(2, d * 0.011)));
+      st().walk(Math.max(-2, Math.min(2, d * 0.011)));
     };
 
     let last: { x: number; y: number } | null = null;
@@ -114,7 +119,7 @@ export default function LiveMarket() {
       last = { x: e.clientX, y: e.clientY };
       st().set({ dragDistance: st().dragDistance + Math.abs(dx) + Math.abs(dy) });
       st().look(dx * 0.0045);
-      st().walk(dy * 0.028);
+      st().walk(-dy * 0.028);
     };
     const onUp = (e: PointerEvent) => {
       if (e.pointerId === pid) last = null;
@@ -173,7 +178,15 @@ export default function LiveMarket() {
     const s = stalls.find((x) => x.key === key);
     if (!s) return;
     setListOpen(false);
-    useMarket.getState().goTo(s.z + 1.2, s.side === -1 ? 1.15 : -1.15);
+    useMarket.getState().goTo(s.stand.x, s.stand.z, s.stand.yaw);
+  };
+
+  // Sokağın girişine git, sokağa doğru bak
+  const goToStreet = (id: string) => {
+    const st = plan.streets.find((x) => x.id === id);
+    if (!st) return;
+    const [x, z] = toWorld(st.origin, st.theta, 0, -10);
+    useMarket.getState().goTo(x, z, st.theta, true);
   };
 
   if (support === "no") {
@@ -194,7 +207,20 @@ export default function LiveMarket() {
 
   return (
     <main ref={area} data-lenis-prevent className="fixed inset-0 touch-none select-none overflow-hidden bg-[#efdcbc]">
-      {support === "ok" && fontsReady && <Scene stalls={stalls} low={low} onReady={() => setReady(true)} />}
+      {support === "ok" && fontsReady && <Scene plan={plan} low={low} onReady={() => setReady(true)} />}
+
+      {/* Uzak noktaya ışınlanırken kısa bir kararma */}
+      <AnimatePresence>
+        {jump > 0 && (
+          <motion.div
+            key={jump}
+            initial={{ opacity: 1 }}
+            animate={{ opacity: 0 }}
+            transition={{ duration: 0.55, ease: "easeOut" }}
+            className="pointer-events-none absolute inset-0 z-10 bg-[#efdcbc]"
+          />
+        )}
+      </AnimatePresence>
 
       {/* Üst çubuk */}
       <div data-hud className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-2 p-3 md:p-5">
@@ -206,11 +232,16 @@ export default function LiveMarket() {
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-terra-500 opacity-75" />
             <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-terra-500" />
           </span>
-          Canlı Pazar
+          Canlı Pazar{started && <span className="font-normal text-cream-50/80">· {streetName}</span>}
         </div>
+        {started && (
+          <div className="pointer-events-none absolute left-1/2 top-16 -translate-x-1/2 rounded-full bg-olive-900/80 px-3 py-1.5 text-xs font-semibold text-cream-50 shadow-md backdrop-blur sm:hidden">
+            {streetName}
+          </div>
+        )}
         <div className="pointer-events-auto flex gap-2">
-          <button onClick={() => setListOpen((o) => !o)} className="flex items-center gap-2 rounded-full bg-cream-50/90 px-4 py-2.5 text-sm font-semibold text-olive-900 shadow-md backdrop-blur">
-            <List className="h-4 w-4" /> <span className="hidden sm:inline">Tezgâhlar</span>
+          <button onClick={() => setListOpen((o) => !o)} aria-label="Harita ve tezgâhlar" className="flex items-center gap-2 rounded-full bg-cream-50/90 px-4 py-2.5 text-sm font-semibold text-olive-900 shadow-md backdrop-blur">
+            <List className="h-4 w-4" /> <span className="hidden sm:inline">Harita ve tezgâhlar</span>
           </button>
           <button id="cart-icon" onClick={openCart} aria-label="Sepet" className="relative grid h-10 w-10 place-items-center rounded-full bg-cream-50/90 text-olive-900 shadow-md backdrop-blur">
             <ShoppingBag className="h-5 w-5" />
@@ -230,18 +261,29 @@ export default function LiveMarket() {
             className="absolute right-3 top-16 z-30 max-h-[70dvh] w-[min(92vw,340px)] overflow-y-auto rounded-3xl bg-cream-50 p-2 shadow-2xl md:right-5 md:top-20"
           >
             <div className="flex items-center justify-between px-3 py-2">
-              <p className="font-semibold text-olive-900">Tezgâhlar</p>
+              <p className="font-semibold text-olive-900">Pazar haritası</p>
               <button onClick={() => setListOpen(false)} aria-label="Kapat" className="grid h-8 w-8 place-items-center rounded-full hover:bg-cream-200"><X className="h-4 w-4" /></button>
             </div>
-            {stalls.filter((s) => s.seller).map((s) => (
-              <button key={s.key} onClick={() => goToStall(s.key)} className="flex w-full items-center gap-3 rounded-2xl p-3 text-left hover:bg-cream-200">
-                <span className="h-9 w-9 shrink-0 rounded-xl" style={{ background: `repeating-linear-gradient(90deg, ${s.colors[0]} 0 6px, ${s.colors[1]} 6px 12px)` }} />
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate font-semibold text-ink">{s.seller!.name}</span>
-                  <span className="block truncate text-xs text-muted">{s.items.map((x) => x.product.name).join(", ") || "Tezgâh kuruluyor"}</span>
-                </span>
-                <span className="text-xs font-semibold text-muted">{s.side === -1 ? "solda" : "sağda"}</span>
-              </button>
+            <div className="px-2 pb-2">
+              <MiniMap plan={plan} onStreet={(id) => { setListOpen(false); goToStreet(id); }} />
+            </div>
+            {plan.streets.map((st) => (
+              <div key={st.id} className="mt-1">
+                <button onClick={() => { setListOpen(false); goToStreet(st.id); }} className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left hover:bg-cream-200">
+                  <span className="text-sm font-bold text-olive-900">{st.name}</span>
+                  <span className="text-xs font-semibold text-olive-700">Sokağa git →</span>
+                </button>
+                {st.stalls.filter((s) => s.seller).map((s) => (
+                  <button key={s.key} onClick={() => goToStall(s.key)} className="flex w-full items-center gap-3 rounded-2xl p-2.5 pl-3 text-left hover:bg-cream-200">
+                    <span className="h-8 w-8 shrink-0 rounded-xl" style={{ background: `repeating-linear-gradient(90deg, ${s.colors[0]} 0 6px, ${s.colors[1]} 6px 12px)` }} />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-semibold text-ink">{s.seller!.name}</span>
+                      <span className="block truncate text-xs text-muted">{s.items.map((x) => x.product.name).join(", ") || "Tezgâh kuruluyor"}</span>
+                    </span>
+                  </button>
+                ))}
+                {!st.stalls.some((s) => s.seller) && <p className="px-3 pb-2 text-xs text-muted">Boş tezgâhlar: üretici olarak başvurabilirsin.</p>}
+              </div>
             ))}
           </motion.div>
         )}
@@ -294,7 +336,7 @@ export default function LiveMarket() {
             exit={{ opacity: 0 }}
             className="pointer-events-none absolute left-1/2 top-20 z-20 -translate-x-1/2 whitespace-nowrap rounded-full bg-ink/70 px-4 py-2 text-sm text-cream-50 backdrop-blur"
           >
-            {low ? "Yukarı kaydırarak yürü, yana kaydırarak bak" : "Tekerlekle veya ↑ ↓ ile yürü, sürükleyerek bak"}
+            {low ? "Yukarı kaydırarak yürü, yana kaydırarak dön; kavşaklarda yan sokaklara gir" : "Tekerlek veya ↑ ↓ ile yürü, sürükleyerek dön; kavşaklarda yan sokaklara gir"}
           </motion.p>
         )}
       </AnimatePresence>
@@ -323,7 +365,7 @@ export default function LiveMarket() {
                 <span className="h-2 w-2 rounded-full bg-terra-500" /> Canlı Pazar
               </span>
               <h1 className="mt-4 text-3xl leading-tight text-olive-900 md:text-4xl">Pazarı gez, tezgâhtan al</h1>
-              <p className="mt-3 text-ink/75">Buharkent&apos;in üreticileri tezgâhlarını kurdu. Sokakta yürü, beğendiğin tezgâha yaklaş, ürünlere bak ve sepetine ekle.</p>
+              <p className="mt-3 text-ink/75">Üreticiler tezgâhlarını ürün gruplarına göre sokaklara kurdu. Ana caddede yürü, tabelalardan sokağını seç, tezgâha yaklaş ve sepetine ekle.</p>
               <div className="mt-5 grid grid-cols-3 gap-2 text-xs text-muted">
                 <span className="flex flex-col items-center gap-1.5 rounded-2xl bg-cream-200 p-3"><Footprints className="h-5 w-5 text-olive-700" />{low ? "Yukarı kaydır" : "Tekerlek / ↑"}<br />yürü</span>
                 <span className="flex flex-col items-center gap-1.5 rounded-2xl bg-cream-200 p-3"><Hand className="h-5 w-5 text-olive-700" />Yana sürükle<br />etrafına bak</span>

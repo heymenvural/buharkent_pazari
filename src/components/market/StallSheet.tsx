@@ -62,11 +62,11 @@ function ItemRow({ it, seller }: { it: StallItem; seller: Seller }) {
           </p>
           <button
             onClick={onAdd}
-            disabled={out}
+            disabled={out || !!it.offer.demo}
             className={`flex min-h-[40px] items-center gap-1.5 rounded-full px-4 text-sm font-semibold transition-colors disabled:opacity-50 ${done ? "bg-olive-500 text-cream-50" : "bg-terra-500 text-cream-50 hover:bg-terra-600"}`}
           >
             {done ? <Check className="h-4 w-4" /> : <ShoppingBag className="h-4 w-4" />}
-            {out ? "Tükendi" : done ? "Eklendi" : "Sepete ekle"}
+            {it.offer.demo ? "Örnek ürün" : out ? "Tükendi" : done ? "Eklendi" : "Sepete ekle"}
           </button>
         </div>
         {v.stock > 0 && v.stock <= 3 && <p className="mt-1 text-xs font-semibold text-terra-600">Son {v.stock} adet</p>}

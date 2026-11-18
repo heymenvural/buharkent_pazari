@@ -231,8 +231,8 @@ export function facadeTexture(wall: string, shutter: string, seed: number) {
 }
 
 /** Giriş takı yazısı */
-export function archTexture() {
-  return make("arch", 1024, 160, (ctx) => {
+export function archTexture(text = "Buharkent Pazarı") {
+  return make(`arch-${text}`, 1024, 160, (ctx) => {
     ctx.fillStyle = "#4a5627";
     ctx.fillRect(0, 0, 1024, 160);
     ctx.strokeStyle = "#e2c48e";
@@ -241,8 +241,10 @@ export function archTexture() {
     ctx.fillStyle = "#fbf1dc";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.font = `600 78px ${displayFont()}`;
-    ctx.fillText("Buharkent Pazarı", 512, 84);
+    let size = 78;
+    ctx.font = `600 ${size}px ${displayFont()}`;
+    while (ctx.measureText(text).width > 940 && size > 40) ctx.font = `600 ${(size -= 4)}px ${displayFont()}`;
+    ctx.fillText(text, 512, 84);
   });
 }
 
@@ -273,5 +275,31 @@ export function initialsTexture(text: string, bg: string) {
     ctx.textBaseline = "middle";
     ctx.font = `600 100px ${displayFont()}`;
     ctx.fillText(text, 128, 136);
+  });
+}
+
+/** Kavşaktaki yön tabelası: sokak adı ve ok */
+export function streetSignTexture(name: string, dir: -1 | 1) {
+  return make(`street-${name}-${dir}`, 512, 128, (ctx) => {
+    ctx.fillStyle = "#2f5a6b";
+    ctx.fillRect(0, 0, 512, 128);
+    ctx.strokeStyle = "#f1e6cc";
+    ctx.lineWidth = 5;
+    ctx.strokeRect(8, 8, 496, 112);
+    ctx.fillStyle = "#fbf1dc";
+    ctx.textBaseline = "middle";
+    // ok
+    ctx.beginPath();
+    const ax = dir === -1 ? 52 : 460;
+    ctx.moveTo(ax + dir * 30, 64);
+    ctx.lineTo(ax - dir * 6, 34);
+    ctx.lineTo(ax - dir * 6, 94);
+    ctx.closePath();
+    ctx.fill();
+    let size = 46;
+    ctx.font = `600 ${size}px ${sansFont()}`;
+    while (ctx.measureText(name).width > 380 && size > 24) ctx.font = `600 ${(size -= 2)}px ${sansFont()}`;
+    ctx.textAlign = dir === -1 ? "left" : "right";
+    ctx.fillText(name, dir === -1 ? 100 : 412, 66);
   });
 }

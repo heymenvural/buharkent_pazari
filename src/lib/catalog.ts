@@ -24,6 +24,7 @@ export type Seller = {
   freeShippingOver?: number;
   cod?: boolean;
   whatsapp?: string; // sadece üretici izin verdiyse
+  demo?: boolean; // prototip (örnek) üretici: tanıtım için gösterilir, satış yapamaz
 };
 
 export type Category = { slug: string; name: string; short: string; icon: LucideIcon; bg: string };
@@ -41,6 +42,7 @@ export type Offer = {
   note: string;
   details: [string, string][];
   images?: string[];
+  demo?: boolean; // prototip ürün: sepete eklenemez
 };
 
 export type Review = { id: string; offerId: string; name: string; rating: number; text: string; date: string };
